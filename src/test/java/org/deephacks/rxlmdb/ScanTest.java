@@ -5,9 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 
-import java.nio.file.Path;
 import java.util.LinkedList;
-import java.util.UUID;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.Fixture.*;

@@ -23,29 +23,16 @@ public class RxDB {
     return scan(null, range);
   }
 
-    private Observable<KeyValue> scan(Transaction tx, KeyRange range) {
+  public Observable<KeyValue> scan(RxTx tx, KeyRange range) {
     return Observable.create(new OnScanSubscribe(this, tx, range));
   }
 
   public void put(Observable<KeyValue> values) {
-    values.subscribe(new Subscriber<KeyValue>() {
-      Transaction tx = lmdb.writeTx();
+    put(null, values);
+  }
 
-      @Override
-      public void onCompleted() {
-        tx.commit();
-      }
-
-      @Override
-      public void onError(Throwable e) {
-        tx.abort();
-      }
-
-      @Override
-      public void onNext(KeyValue kv) {
-        db.put(tx, kv.key, kv.value);
-      }
-    });
+  public void put(RxTx tx, Observable<KeyValue> values) {
+    values.subscribe(new PutSubscriber(this, tx));
   }
 
   public static Builder builder() {
@@ -87,14 +74,42 @@ public class RxDB {
     }
   }
 
+  private static class PutSubscriber extends Subscriber<KeyValue> {
+    final RxTx tx;
+    final Database db;
+    final boolean closeTx;
+
+    private PutSubscriber(RxDB db, RxTx tx) {
+      this.closeTx = tx != null ? false : true;
+      this.tx = tx != null ? tx : db.lmdb.writeTx();
+      this.db = db.db;
+    }
+
+    @Override
+    public void onCompleted() {
+      if (closeTx) {
+        tx.commit();
+      }
+    }
+
+    @Override
+    public void onError(Throwable e) {
+      tx.abort();
+    }
+
+    @Override
+    public void onNext(KeyValue kv) {
+      db.put(tx.tx, kv.key, kv.value);
+    }
+  }
 
   private static class OnScanSubscribe implements Observable.OnSubscribe<KeyValue> {
-    private final Transaction tx;
+    private final RxTx tx;
     private final KeyRange range;
     private final Database db;
     private final boolean closeTx;
 
-    private OnScanSubscribe(RxDB db, Transaction tx, KeyRange range) {
+    private OnScanSubscribe(RxDB db, RxTx tx, KeyRange range) {
       this.closeTx = tx != null ? false : true;
       this.tx = tx != null ? tx : db.lmdb.readTx();
       this.range = range;
@@ -106,9 +121,9 @@ public class RxDB {
       try {
         EntryIterator it;
         if (range.forward) {
-          it = range.start != null ? db.seek(tx, range.start) : db.iterate(tx);
+          it = range.start != null ? db.seek(tx.tx, range.start) : db.iterate(tx.tx);
         } else {
-          it = range.start != null ? db.seekBackward(tx, range.start) : db.iterateBackward(tx);
+          it = range.start != null ? db.seekBackward(tx.tx, range.start) : db.iterateBackward(tx.tx);
         }
         while (it.hasNext()) {
           Entry next = it.next();

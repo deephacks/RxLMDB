@@ -45,12 +45,12 @@ public class RxLMDB {
     env.close();
   }
 
-  public Transaction writeTx() {
-    return env.createWriteTransaction();
+  public RxTx writeTx() {
+    return new RxTx(env.createWriteTransaction());
   }
 
-  public Transaction readTx() {
-    return env.createReadTransaction();
+  public RxTx readTx() {
+    return new RxTx(env.createReadTransaction());
   }
 
   public static class Builder {

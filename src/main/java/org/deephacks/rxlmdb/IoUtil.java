@@ -8,9 +8,9 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 class IoUtil {
-  public static final String TMP_DIR = System.getProperty("java.io.tmpdir") + File.separator + "rxlmdb";
+  static final String TMP_DIR = System.getProperty("java.io.tmpdir") + File.separator + "rxlmdb";
 
-  public static Path createTmpDir() {
+  static Path createTmpDir() {
     try {
       Path path = Paths.get(TMP_DIR);
       Files.createDirectories(path);
@@ -20,7 +20,7 @@ class IoUtil {
     }
   }
 
-  public static Path createPathOrTemp(Optional<Path> optional) {
+  static Path createPathOrTemp(Optional<Path> optional) {
     Path path = optional.orElse(createTmpDir());
     try {
       Files.createDirectories(path);

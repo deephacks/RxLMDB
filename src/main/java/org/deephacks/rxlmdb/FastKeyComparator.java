@@ -8,7 +8,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Comparator;
 
-public class FastKeyComparator implements Comparator<byte[]> {
+class FastKeyComparator implements Comparator<byte[]> {
   public static final int LONG_BYTES = Long.SIZE / Byte.SIZE;
   static final Unsafe theUnsafe;
   static final boolean littleEndian = ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN);

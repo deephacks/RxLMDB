@@ -1,3 +1,16 @@
+/**
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.*;
@@ -115,7 +128,7 @@ public class RxDB {
     }
   }
 
-  private static class OnScanSubscribe<R> implements Observable.OnSubscribe<KeyValue> {
+  private static class OnScanSubscribe implements Observable.OnSubscribe<KeyValue> {
     private RxTx tx;
     private boolean closeTx;
     private final RxDB db;
@@ -135,7 +148,6 @@ public class RxDB {
         BufferCursor cursor = db.db.bufferCursor(tx.tx);
         boolean hasNext = range.start != null ? cursor.seek(range.start) :
           (range.forward ? cursor.next() : cursor.prev());
-
         while (hasNext) {
           byte[] key = cursor.keyBytes();
           if (range.forward && range.stop != null && withinKeyRange(key, range.stop)) {

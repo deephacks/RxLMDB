@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
@@ -45,6 +46,42 @@ public class TransactionTest {
     LinkedList<KeyValue> expected = Fixture.range(_1, _5);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testWriteAndCommitTxOnSeparateThreads() throws InterruptedException {
+    RxTx tx = lmdb.writeTx();
+    db.put(tx, Observable.from(oneToFive).subscribeOn(Schedulers.io()));
+    Thread.sleep(200);
+    tx.commit();
+    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testCreateAndCommitTxOnSeparateThreads() throws InterruptedException {
+    RxTx tx = lmdb.writeTx();
+    Observable<KeyValue> obs = Observable.from(oneToFive)
+      .subscribeOn(Schedulers.io())
+      .finallyDo(() -> tx.commit());
+    db.put(tx, obs);
+    Thread.sleep(200);
+    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    assertTrue(expected.isEmpty());
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testCreateAndRollbackTxOnSeparateThreads() throws InterruptedException {
+    RxTx tx = lmdb.writeTx();
+    Observable<KeyValue> obs = Observable.from(oneToFive)
+      .subscribeOn(Schedulers.io())
+      .finallyDo(() -> tx.abort());
+    db.put(tx, obs);
+    Thread.sleep(200);
+    // aborted so NoSuchElementException is expected
+    db.scan(KeyRange.forward()).toBlocking().first();
   }
 
   @Test(expected = NoSuchElementException.class)

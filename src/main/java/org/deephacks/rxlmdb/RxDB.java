@@ -2,8 +2,10 @@ package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.*;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.deephacks.rxlmdb.FastKeyComparator.withinKeyRange;
@@ -12,19 +14,29 @@ public class RxDB {
   final RxLMDB lmdb;
   final Database db;
   final String name;
+  final Scheduler scheduler;
 
   private RxDB(Builder builder) {
     this.lmdb = builder.lmdb;
     this.name = Optional.ofNullable(builder.name).orElse("default");
     this.db = lmdb.env.openDatabase(this.name);
+    this.scheduler = lmdb.scheduler;
   }
 
-  public Observable<KeyValue> scan(KeyRange range) {
-    return scan(null, range);
+  public Observable<KeyValue> scan(KeyRange... ranges) {
+    return scan(null, ranges);
   }
 
-  public Observable<KeyValue> scan(RxTx tx, KeyRange range) {
-    return Observable.create(new OnScanSubscribe(this, tx, range));
+  public Observable<KeyValue> scan(RxTx tx, KeyRange... ranges) {
+    if (ranges.length == 0) {
+      return Observable.empty();
+    } else if (ranges.length == 1) {
+      return Observable.create(new OnScanSubscribe(this, tx, ranges[0]));
+    }
+    return Arrays.asList(ranges).stream()
+      .map(range -> Observable.create(new OnScanSubscribe(this, tx, range))
+        .subscribeOn(scheduler))
+      .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }
 
   public void put(Observable<KeyValue> values) {
@@ -103,27 +115,28 @@ public class RxDB {
     }
   }
 
-  private static class OnScanSubscribe implements Observable.OnSubscribe<KeyValue> {
-    private final RxTx tx;
+  private static class OnScanSubscribe<R> implements Observable.OnSubscribe<KeyValue> {
+    private RxTx tx;
+    private boolean closeTx;
+    private final RxDB db;
     private final KeyRange range;
-    private final Database db;
-    private final boolean closeTx;
 
     private OnScanSubscribe(RxDB db, RxTx tx, KeyRange range) {
-      this.closeTx = tx != null ? false : true;
-      this.tx = tx != null ? tx : db.lmdb.readTx();
       this.range = range;
-      this.db = db.db;
+      this.db = db;
+      this.tx = tx;
     }
 
     @Override
     public void call(Subscriber<? super KeyValue> subscriber) {
       try {
+        this.closeTx = tx != null ? false : true;
+        this.tx = tx != null ? tx : db.lmdb.readTx();
         EntryIterator it;
         if (range.forward) {
-          it = range.start != null ? db.seek(tx.tx, range.start) : db.iterate(tx.tx);
+          it = range.start != null ? db.db.seek(tx.tx, range.start) : db.db.iterate(tx.tx);
         } else {
-          it = range.start != null ? db.seekBackward(tx.tx, range.start) : db.iterateBackward(tx.tx);
+          it = range.start != null ? db.db.seekBackward(tx.tx, range.start) : db.db.iterateBackward(tx.tx);
         }
         while (it.hasNext()) {
           Entry next = it.next();

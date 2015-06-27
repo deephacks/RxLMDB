@@ -2,17 +2,18 @@ package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.*;
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
+import rx.schedulers.Schedulers;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RxLMDB {
   final Env env;
   final Path path;
+  final Scheduler scheduler;
 
   private RxLMDB(Builder builder) {
     this.env = new Env();
@@ -20,6 +21,8 @@ public class RxLMDB {
       .ifPresent(size -> this.env.setMapSize(size));
     this.path = IoUtil.createPathOrTemp(builder.path);
     this.env.open(path.toString());
+    this.scheduler = Optional.ofNullable(builder.scheduler)
+      .orElse(Schedulers.io());
   }
 
   public static Builder builder() {
@@ -56,6 +59,7 @@ public class RxLMDB {
   public static class Builder {
     private Optional<Path> path = Optional.empty();
     private long size;
+    public Scheduler scheduler;
 
     public Builder path(String path) {
       this.path = Optional.ofNullable(Paths.get(path));
@@ -64,6 +68,11 @@ public class RxLMDB {
 
     public Builder size(ByteUnit unit, long size) {
       this.size = unit.toBytes(size);
+      return this;
+    }
+
+    public Builder scheduler(Scheduler scheduler) {
+      this.scheduler = scheduler;
       return this;
     }
 

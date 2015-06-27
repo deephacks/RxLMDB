@@ -11,13 +11,11 @@ import java.util.NoSuchElementException;
 import static org.deephacks.rxlmdb.Fixture.*;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.deephacks.rxlmdb.Fixture.oneToFive;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionTest {
   RxDB db;
   RxLMDB lmdb;
-  Observable<KeyValue> obs = Observable.from(oneToFive);
 
   @Before
   public void before() {
@@ -34,7 +32,7 @@ public class TransactionTest {
   @Test(expected = NoSuchElementException.class)
   public void testAbort() {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, obs);
+    db.put(tx, Observable.from(oneToFive));
     tx.abort();
     db.scan(KeyRange.forward()).toBlocking().first();
   }
@@ -42,7 +40,7 @@ public class TransactionTest {
   @Test
   public void testCommit() {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, obs);
+    db.put(tx, Observable.from(oneToFive));
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(_1, _5);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
@@ -52,7 +50,7 @@ public class TransactionTest {
   @Test(expected = NoSuchElementException.class)
   public void testScanWithinTxThenAbort() {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, obs);
+    db.put(tx, Observable.from(oneToFive));
     LinkedList<KeyValue> expected = Fixture.range(_1, _5);
     // should see values within same yet-to-commit tx
     db.scan(tx, KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));

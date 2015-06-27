@@ -13,12 +13,11 @@ import static org.junit.Assert.assertTrue;
 
 public class ScanTest {
   RxDB db;
-  Observable<KeyValue> obs = Observable.from(oneToFive);
 
   @Before
   public void before() {
     db = RxDB.tmp();
-    db.put(obs);
+    db.put(Observable.from(oneToFive));
   }
 
   @After

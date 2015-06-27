@@ -33,7 +33,7 @@ public class ParallelRangeScanTest {
   public void testParallelDifferentTx() {
     LinkedList<KeyValue> expected = Fixture.range(_2, _5);
     Observable<KeyValue> result = db.scan(KeyRange.range(_2, _3), KeyRange.range(_4, _5));
-    toStream(result)
+    RxObservables.toStreamBlocking(result)
       .map(kv -> kv.key)
       .sorted(new FastKeyComparator())
       .forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
@@ -45,15 +45,10 @@ public class ParallelRangeScanTest {
     LinkedList<KeyValue> expected = Fixture.range(_2, _5);
     RxTx tx = db.lmdb.readTx();
     Observable<KeyValue> result = db.scan(tx, KeyRange.range(_2, _3), KeyRange.range(_4, _5));
-    toStream(result)
+    RxObservables.toStreamBlocking(result)
       .map(kv -> kv.key)
       .sorted(new FastKeyComparator())
       .forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
     assertTrue(expected.isEmpty());
   }
-
-  private Stream<KeyValue> toStream(Observable<KeyValue> observable) {
-    return StreamSupport.stream(observable.toBlocking().toIterable().spliterator(), false);
-  }
-
 }

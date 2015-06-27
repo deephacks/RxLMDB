@@ -132,23 +132,22 @@ public class RxDB {
       try {
         this.closeTx = tx != null ? false : true;
         this.tx = tx != null ? tx : db.lmdb.readTx();
-        EntryIterator it;
-        if (range.forward) {
-          it = range.start != null ? db.db.seek(tx.tx, range.start) : db.db.iterate(tx.tx);
-        } else {
-          it = range.start != null ? db.db.seekBackward(tx.tx, range.start) : db.db.iterateBackward(tx.tx);
-        }
-        while (it.hasNext()) {
-          Entry next = it.next();
-          if (range.forward && range.stop != null && withinKeyRange(next.getKey(), range.stop)) {
-            subscriber.onNext(new KeyValue(next));
-          } else if (!range.forward && range.stop != null && withinKeyRange(range.stop, next.getKey())) {
-            subscriber.onNext(new KeyValue(next));
+        BufferCursor cursor = db.db.bufferCursor(tx.tx);
+        boolean hasNext = range.start != null ? cursor.seek(range.start) :
+          (range.forward ? cursor.next() : cursor.prev());
+
+        while (hasNext) {
+          byte[] key = cursor.keyBytes();
+          if (range.forward && range.stop != null && withinKeyRange(key, range.stop)) {
+            subscriber.onNext(new KeyValue(key, cursor.valBytes()));
+          } else if (!range.forward && range.stop != null && withinKeyRange(range.stop, cursor.keyBytes())) {
+            subscriber.onNext(new KeyValue(key, cursor.valBytes()));
           } else if (range.stop == null) {
-            subscriber.onNext(new KeyValue(next));
+            subscriber.onNext(new KeyValue(key, cursor.valBytes()));
           } else {
             break;
           }
+          hasNext = range.forward ? cursor.next() : cursor.prev();
         }
       } catch (Throwable e) {
         subscriber.onError(e);

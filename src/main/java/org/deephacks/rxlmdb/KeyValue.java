@@ -1,5 +1,6 @@
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.BufferCursor;
 import org.fusesource.lmdbjni.Entry;
 
 import java.util.Arrays;
@@ -12,7 +13,6 @@ public class KeyValue {
     this.key = entry.getKey();
     this.value = entry.getValue();
   }
-
 
   public KeyValue(byte[] key, byte[] value) {
     this.key = key;

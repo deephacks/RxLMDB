@@ -17,7 +17,7 @@ public class ScanTest {
   @Before
   public void before() {
     db = RxDB.tmp();
-    db.put(Observable.from(oneToNine));
+    db.put(Observable.from(_1_to_9));
   }
 
   @After

@@ -36,10 +36,10 @@ public class KeyRange {
   }
 
   public static KeyRange range(byte[] start, byte[] stop) {
-    return new KeyRange(start, stop, true);
-  }
-
-  public static KeyRange rangeBackward(byte[] start, byte[] stop) {
-    return new KeyRange(start, stop, false);
+    if (new FastKeyComparator().compare(start, stop) < 0) {
+      return new KeyRange(start, stop, true);
+    } else {
+      return new KeyRange(start, stop, false);
+    }
   }
 }

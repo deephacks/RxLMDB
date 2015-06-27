@@ -36,7 +36,7 @@ public class ScanTest {
   @Test
   public void testScanRangeBackward() {
     LinkedList<KeyValue> expected = Fixture.range(_3, _2);
-    db.scan(KeyRange.rangeBackward(_3, _2)).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    db.scan(KeyRange.range(_3, _2)).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 

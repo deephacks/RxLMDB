@@ -33,7 +33,7 @@ public class TransactionTest {
   @Test(expected = NoSuchElementException.class)
   public void testAbort() {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(oneToFive));
+    db.put(tx, Observable.from(oneToNine));
     tx.abort();
     db.scan(KeyRange.forward()).toBlocking().first();
   }
@@ -41,9 +41,9 @@ public class TransactionTest {
   @Test
   public void testCommit() {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(oneToFive));
+    db.put(tx, Observable.from(oneToNine));
     tx.commit();
-    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -51,10 +51,10 @@ public class TransactionTest {
   @Test
   public void testWriteAndCommitTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(oneToFive).subscribeOn(Schedulers.io()));
+    db.put(tx, Observable.from(oneToNine).subscribeOn(Schedulers.io()));
     Thread.sleep(200);
     tx.commit();
-    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -62,12 +62,12 @@ public class TransactionTest {
   @Test
   public void testCreateAndCommitTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
-    Observable<KeyValue> obs = Observable.from(oneToFive)
+    Observable<KeyValue> obs = Observable.from(oneToNine)
       .subscribeOn(Schedulers.io())
       .finallyDo(() -> tx.commit());
     db.put(tx, obs);
     Thread.sleep(200);
-    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -75,7 +75,7 @@ public class TransactionTest {
   @Test(expected = NoSuchElementException.class)
   public void testCreateAndRollbackTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
-    Observable<KeyValue> obs = Observable.from(oneToFive)
+    Observable<KeyValue> obs = Observable.from(oneToNine)
       .subscribeOn(Schedulers.io())
       .finallyDo(() -> tx.abort());
     db.put(tx, obs);
@@ -87,8 +87,8 @@ public class TransactionTest {
   @Test(expected = NoSuchElementException.class)
   public void testScanWithinTxThenAbort() {
     RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(oneToFive));
-    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    db.put(tx, Observable.from(oneToNine));
+    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
     // should see values within same yet-to-commit tx
     db.scan(tx, KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());

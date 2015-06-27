@@ -17,7 +17,7 @@ public class ScanTest {
   @Before
   public void before() {
     db = RxDB.tmp();
-    db.put(Observable.from(oneToFive));
+    db.put(Observable.from(oneToNine));
   }
 
   @After
@@ -42,7 +42,7 @@ public class ScanTest {
 
   @Test
   public void testScanAtLeast() {
-    LinkedList<KeyValue> expected = Fixture.range(_3, _5);
+    LinkedList<KeyValue> expected = Fixture.range(_3, _9);
     db.scan(KeyRange.atLeast(_3)).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -63,21 +63,21 @@ public class ScanTest {
 
   @Test
   public void testScanAtMostBackward() {
-    LinkedList<KeyValue> expected = Fixture.range(_5, _4);
+    LinkedList<KeyValue> expected = Fixture.range(_9, _4);
     db.scan(KeyRange.atMostBackward(_4)).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 
   @Test
   public void testScanForward() {
-    LinkedList<KeyValue> expected = Fixture.range(_1, _5);
+    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 
   @Test
   public void testScanBackward() {
-    LinkedList<KeyValue> expected = Fixture.range(_5, _1);
+    LinkedList<KeyValue> expected = Fixture.range(_9, _1);
     db.scan(KeyRange.backward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }

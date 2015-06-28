@@ -13,7 +13,6 @@
  */
 package org.deephacks.rxlmdb;
 
-import com.google.common.primitives.UnsignedBytes;
 import org.fusesource.lmdbjni.*;
 import rx.Observable;
 import rx.Scheduler;
@@ -55,15 +54,27 @@ public class RxDB {
   }
 
   public <T> Observable<T> scan(RxTx tx, Scan<T> scan, KeyRange... ranges) {
+    return scan(tx, scan, false, ranges);
+  }
+
+  private <T> Observable<T> scan(RxTx tx, Scan<T> scan, boolean delete, KeyRange... ranges) {
     if (ranges.length == 0) {
-      return Observable.create(new OnScanSubscribe(this, tx, scan, KeyRange.forward()));
+      return Observable.create(new OnScanSubscribe(this, tx, scan, KeyRange.forward(), delete));
     } else if (ranges.length == 1) {
-      return Observable.create(new OnScanSubscribe(this, tx, scan, ranges[0]));
+      return Observable.create(new OnScanSubscribe(this, tx, scan, ranges[0], delete));
     }
     return Arrays.asList(ranges).stream()
-      .map(range -> Observable.create(new OnScanSubscribe(this, tx, scan, range))
+      .map(range -> Observable.create(new OnScanSubscribe(this, tx, scan, range, delete))
         .subscribeOn(scheduler))
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
+  }
+
+  public void delete(KeyRange... keys) {
+    delete(null, keys);
+  }
+
+  public void delete(RxTx tx, KeyRange... keys) {
+    scan(tx, scanDefault, true, keys).subscribe();
   }
 
   public void delete(Observable<byte[]> keys) {
@@ -185,19 +196,21 @@ public class RxDB {
     private final RxDB db;
     private final KeyRange range;
     private final Scan<T> scan;
+    private final boolean delete;
 
-    private OnScanSubscribe(RxDB db, RxTx tx, Scan<T> scan, KeyRange range) {
+    private OnScanSubscribe(RxDB db, RxTx tx, Scan<T> scan, KeyRange range, boolean delete) {
       this.range = range;
       this.db = db;
       this.tx = tx;
       this.scan = scan;
+      this.delete = delete;
     }
 
     @Override
     public void call(Subscriber<? super T> subscriber) {
       try {
         this.closeTx = tx != null ? false : true;
-        this.tx = tx != null ? tx : db.lmdb.readTx();
+        this.tx = tx != null ? tx : (delete ? db.lmdb.writeTx() : db.lmdb.readTx());
         BufferCursor cursor = db.db.bufferCursor(tx.tx);
         DirectBuffer stop = range.stop != null ? new DirectBuffer(range.stop) : new DirectBuffer(new byte[0]);
         boolean hasNext = range.start != null ? cursor.seek(range.start) :
@@ -206,17 +219,29 @@ public class RxDB {
           if (range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) <= 0) {
             T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
             if (result != null) {
-              subscriber.onNext(result);
+              if (delete) {
+                db.db.delete(tx.tx, cursor.keyBuffer());
+              } else {
+                subscriber.onNext(result);
+              }
             }
           } else if (!range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) >= 0) {
             T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
             if (result != null) {
-              subscriber.onNext(result);
+              if (delete) {
+                db.db.delete(tx.tx, cursor.keyBuffer());
+              } else {
+                subscriber.onNext(result);
+              }
             }
           } else if (range.stop == null) {
             T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
             if (result != null) {
-              subscriber.onNext(result);
+              if (delete) {
+                db.db.delete(tx.tx, cursor.keyBuffer());
+              } else {
+                subscriber.onNext(result);
+              }
             }
           } else {
             break;
@@ -227,7 +252,7 @@ public class RxDB {
         subscriber.onError(e);
       } finally {
         if (closeTx) {
-          tx.abort();
+          tx.commit();
         }
       }
       subscriber.onCompleted();

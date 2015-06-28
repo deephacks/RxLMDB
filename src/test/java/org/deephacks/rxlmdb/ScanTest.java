@@ -1,11 +1,13 @@
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.DirectBuffer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.Fixture.*;
@@ -92,5 +94,18 @@ public class ScanTest {
     db.scan(KeyRange.backward())
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testScanMapper() {
+    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
+    db.scan((key, value) -> key.getByte(0))
+      .forEach(k -> assertThat(expected.pollFirst().key[0]).isEqualTo(k));
+    assertTrue(expected.isEmpty());
+  }
+
+  @Test(expected = NoSuchElementException.class)
+  public void testScanMapperNull() {
+    db.scan((key, value) -> null).toBlocking().first();
   }
 }

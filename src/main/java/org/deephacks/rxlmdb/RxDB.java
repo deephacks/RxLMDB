@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,18 +39,30 @@ public class RxDB {
     this.scheduler = lmdb.scheduler;
   }
 
+  public <T> Observable<T> scan(Scan<T> scan) {
+    return scan(null, scan);
+  }
+
   public Observable<KeyValue> scan(KeyRange... ranges) {
-    return scan(null, ranges);
+    return scan(null, scanDefault, ranges);
   }
 
   public Observable<KeyValue> scan(RxTx tx, KeyRange... ranges) {
+    return scan(tx, scanDefault, ranges);
+  }
+
+  public <T> Observable<T> scan(Scan<T> scan, KeyRange... ranges) {
+    return scan(null, scan, ranges);
+  }
+
+  public <T> Observable<T> scan(RxTx tx, Scan<T> scan, KeyRange... ranges) {
     if (ranges.length == 0) {
-      return Observable.empty();
+      return Observable.create(new OnScanSubscribe(this, tx, scan, KeyRange.forward()));
     } else if (ranges.length == 1) {
-      return Observable.create(new OnScanSubscribe(this, tx, scanDefault, ranges[0]));
+      return Observable.create(new OnScanSubscribe(this, tx, scan, ranges[0]));
     }
     return Arrays.asList(ranges).stream()
-      .map(range -> Observable.create(new OnScanSubscribe(this, tx, scanDefault, range))
+      .map(range -> Observable.create(new OnScanSubscribe(this, tx, scan, range))
         .subscribeOn(scheduler))
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }

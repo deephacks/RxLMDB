@@ -1,11 +1,15 @@
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.DirectBuffer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.Fixture.*;
@@ -62,6 +66,18 @@ public class ParallelRangeScanTest {
       .map(kv -> kv.key)
       .sorted(DirectBufferComparator.byteArrayComparator())
       .forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
+    assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testParallelScanMapper() {
+    Scan<Byte> scan = (key, value) -> key.getByte(0);
+    LinkedList<KeyValue> expected = Fixture.range(__2, __5);
+    RxTx tx = db.lmdb.readTx();
+    Observable<Byte> result = db.scan(tx, scan, KeyRange.range(__2, __3), KeyRange.range(__4, __5));
+
+    RxObservables.toStreamBlocking(result).sorted()
+      .forEach(key -> assertThat(expected.pollFirst().key[0]).isEqualTo(key));
     assertTrue(expected.isEmpty());
   }
 }

@@ -28,6 +28,8 @@ public class Fixture {
   public static final byte[] _8 = new byte[] { 8 };
   public static final byte[] _9 = new byte[] { 9 };
 
+  public static final byte[][] keys = new byte[][] { __1, __2, __3, __4, __5, __6, __7, __8, __9};
+
   public static final KeyValue[] values = new KeyValue[] {
     new KeyValue(__1, __1),
     new KeyValue(__2, __2),

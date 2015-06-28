@@ -1,15 +1,11 @@
 package org.deephacks.rxlmdb;
 
-import org.fusesource.lmdbjni.DirectBuffer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 
-import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
-import java.util.stream.Stream;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.Fixture.*;

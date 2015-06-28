@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import static org.deephacks.rxlmdb.Fixture.*;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionTest {
@@ -39,6 +40,18 @@ public class TransactionTest {
   }
 
   @Test
+  public void testAbortDelete() {
+    RxTx tx = lmdb.writeTx();
+    db.put(tx, Observable.from(_1_to_9));
+    tx.commit();
+    tx = lmdb.writeTx();
+    db.delete(tx, Observable.from(keys));
+    assertThat(RxObservables.toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
+    tx.abort();
+    assertThat(RxObservables.toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
+  }
+
+  @Test
   public void testCommit() {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9));
@@ -46,6 +59,18 @@ public class TransactionTest {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testCommitDelete() {
+    RxTx tx = lmdb.writeTx();
+    db.put(tx, Observable.from(_1_to_9));
+    tx.commit();
+    tx = lmdb.writeTx();
+    db.delete(tx, Observable.from(keys));
+    assertThat(RxObservables.toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
+    tx.commit();
+    assertThat(RxObservables.toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
   }
 
   @Test

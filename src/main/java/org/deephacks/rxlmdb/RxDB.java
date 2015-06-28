@@ -20,7 +20,6 @@ import rx.Scheduler;
 import rx.Subscriber;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Optional;
 
 import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
@@ -65,6 +64,14 @@ public class RxDB {
       .map(range -> Observable.create(new OnScanSubscribe(this, tx, scan, range))
         .subscribeOn(scheduler))
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
+  }
+
+  public void delete(Observable<byte[]> keys) {
+    delete(null, keys);
+  }
+
+  public void delete(RxTx tx, Observable<byte[]> keys) {
+    keys.subscribe(new DeleteSubscriber(this, tx));
   }
 
   public void put(Observable<KeyValue> values) {
@@ -140,6 +147,35 @@ public class RxDB {
     @Override
     public void onNext(KeyValue kv) {
       db.put(tx.tx, kv.key, kv.value);
+    }
+  }
+
+  private static class DeleteSubscriber extends Subscriber<byte[]> {
+    final RxTx tx;
+    final Database db;
+    final boolean closeTx;
+
+    private DeleteSubscriber(RxDB db, RxTx tx) {
+      this.closeTx = tx != null ? false : true;
+      this.tx = tx != null ? tx : db.lmdb.writeTx();
+      this.db = db.db;
+    }
+
+    @Override
+    public void onCompleted() {
+      if (closeTx) {
+        tx.commit();
+      }
+    }
+
+    @Override
+    public void onError(Throwable e) {
+      tx.abort();
+    }
+
+    @Override
+    public void onNext(byte[] key) {
+      db.delete(tx.tx, key);
     }
   }
 

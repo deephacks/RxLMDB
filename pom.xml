@@ -101,7 +101,13 @@
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni</artifactId>
-      <version>0.4.0</version>
+      <version>0.4.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.deephacks.lmdbjni</groupId>
+      <artifactId>lmdbjni-linux64</artifactId>
+      <version>0.4.1</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.reactivex</groupId>
@@ -109,16 +115,15 @@
       <version>1.0.12</version>
     </dependency>
     <dependency>
-      <groupId>org.deephacks.lmdbjni</groupId>
-      <artifactId>lmdbjni-linux64</artifactId>
-      <version>0.4.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.10</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.truth</groupId>

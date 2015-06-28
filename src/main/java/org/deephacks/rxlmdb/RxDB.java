@@ -13,17 +13,20 @@
  */
 package org.deephacks.rxlmdb;
 
+import com.google.common.primitives.UnsignedBytes;
 import org.fusesource.lmdbjni.*;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Optional;
 
-import static org.deephacks.rxlmdb.FastKeyComparator.withinKeyRange;
+import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 
 public class RxDB {
+  final Scan.ScanDefault scanDefault = new Scan.ScanDefault();
   final RxLMDB lmdb;
   final Database db;
   final String name;
@@ -44,10 +47,10 @@ public class RxDB {
     if (ranges.length == 0) {
       return Observable.empty();
     } else if (ranges.length == 1) {
-      return Observable.create(new OnScanSubscribe(this, tx, ranges[0]));
+      return Observable.create(new OnScanSubscribe(this, tx, scanDefault, ranges[0]));
     }
     return Arrays.asList(ranges).stream()
-      .map(range -> Observable.create(new OnScanSubscribe(this, tx, range))
+      .map(range -> Observable.create(new OnScanSubscribe(this, tx, scanDefault, range))
         .subscribeOn(scheduler))
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }
@@ -128,34 +131,45 @@ public class RxDB {
     }
   }
 
-  private static class OnScanSubscribe implements Observable.OnSubscribe<KeyValue> {
+  private static class OnScanSubscribe<T> implements Observable.OnSubscribe<T> {
     private RxTx tx;
     private boolean closeTx;
     private final RxDB db;
     private final KeyRange range;
+    private final Scan<T> scan;
 
-    private OnScanSubscribe(RxDB db, RxTx tx, KeyRange range) {
+    private OnScanSubscribe(RxDB db, RxTx tx, Scan<T> scan, KeyRange range) {
       this.range = range;
       this.db = db;
       this.tx = tx;
+      this.scan = scan;
     }
 
     @Override
-    public void call(Subscriber<? super KeyValue> subscriber) {
+    public void call(Subscriber<? super T> subscriber) {
       try {
         this.closeTx = tx != null ? false : true;
         this.tx = tx != null ? tx : db.lmdb.readTx();
         BufferCursor cursor = db.db.bufferCursor(tx.tx);
+        DirectBuffer stop = range.stop != null ? new DirectBuffer(range.stop) : new DirectBuffer(new byte[0]);
         boolean hasNext = range.start != null ? cursor.seek(range.start) :
           (range.forward ? cursor.next() : cursor.prev());
         while (hasNext) {
-          byte[] key = cursor.keyBytes();
-          if (range.forward && range.stop != null && withinKeyRange(key, range.stop)) {
-            subscriber.onNext(new KeyValue(key, cursor.valBytes()));
-          } else if (!range.forward && range.stop != null && withinKeyRange(range.stop, cursor.keyBytes())) {
-            subscriber.onNext(new KeyValue(key, cursor.valBytes()));
+          if (range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) <= 0) {
+            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+            if (result != null) {
+              subscriber.onNext(result);
+            }
+          } else if (!range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) >= 0) {
+            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+            if (result != null) {
+              subscriber.onNext(result);
+            }
           } else if (range.stop == null) {
-            subscriber.onNext(new KeyValue(key, cursor.valBytes()));
+            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+            if (result != null) {
+              subscriber.onNext(result);
+            }
           } else {
             break;
           }

@@ -1,70 +1,45 @@
 package org.deephacks.rxlmdb;
 
-import sun.misc.Unsafe;
+import org.fusesource.lmdbjni.DirectBuffer;
 
-import java.lang.reflect.Field;
 import java.nio.ByteOrder;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Comparator;
 
-class FastKeyComparator implements Comparator<byte[]> {
+class DirectBufferComparator implements Comparator<DirectBuffer> {
   public static final int LONG_BYTES = Long.SIZE / Byte.SIZE;
-  static final Unsafe theUnsafe;
   static final boolean littleEndian = ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN);
 
-  /** The offset to the first element in a byte array. */
-  static final int BYTE_ARRAY_BASE_OFFSET;
-
-  static {
-    theUnsafe = (Unsafe) AccessController.doPrivileged(
-      (PrivilegedAction<Object>) () -> {
-        try {
-          Field f = Unsafe.class.getDeclaredField("theUnsafe");
-          f.setAccessible(true);
-          return f.get(null);
-        } catch (NoSuchFieldException e) {
-          // It doesn't matter what we throw;
-          // it's swallowed in getBestComparer().
-          throw new Error();
-        } catch (IllegalAccessException e) {
-          throw new Error();
-        }
-      }
-    );
-
-    BYTE_ARRAY_BASE_OFFSET = theUnsafe.arrayBaseOffset(byte[].class);
-
-    // sanity check - this should never fail
-    if (theUnsafe.arrayIndexScale(byte[].class) != 1) {
-      throw new AssertionError();
-    }
-  }
-
   @Override
-  public int compare(byte[] o1, byte[] o2) {
-    return compareTo(o1, 0, o1.length, o2, 0, o2.length);
+  public int compare(DirectBuffer o1, DirectBuffer o2) {
+    return compareTo(o1, 0, o1.capacity(), o2, 0, o2.capacity());
   }
 
-  public static boolean equals(byte[] o1, byte[] o2) {
-    return compareTo(o1, 0, o1.length, o2, 0, o2.length) == 0;
+  public static Comparator<byte[]> byteArrayComparator() {
+    return (o1, o2) -> compareTo(o1, o2);
   }
 
-  public static boolean withinKeyRange(byte[] key, byte[] lastKey) {
-    if (compareTo(lastKey, 0, lastKey.length, key, 0, key.length) < 0) {
+  public static int compareTo(byte[] key, byte[] stop) {
+    return compareTo(new DirectBuffer(key), new DirectBuffer(stop));
+  }
+
+  public static boolean within(byte[] key, byte[] start, byte[] stop) {
+    DirectBuffer startBuffer = new DirectBuffer(start);
+    DirectBuffer stopBuffer = new DirectBuffer(stop);
+    DirectBuffer keyBuffer = new DirectBuffer(key);
+    if (compareTo(startBuffer, 0, stop.length, keyBuffer, 0, key.length) > 0) {
+      return false;
+    }
+    if (compareTo(stopBuffer, 0, stop.length, keyBuffer, 0, key.length) < 0) {
       return false;
     }
     return true;
   }
 
-  public static boolean withinKeyRange(byte[] key, byte[] firstKey, byte[] lastKey) {
-    if (compareTo(firstKey, 0, firstKey.length, key, 0, key.length) > 0) {
-      return false;
+  public static int compareTo(DirectBuffer key, DirectBuffer stop) {
+    if (stop.capacity() > key.capacity()) {
+      return -1;
     }
-    if (compareTo(lastKey, 0, lastKey.length, key, 0, key.length) < 0) {
-      return false;
-    }
-    return true;
+    return compareTo(key, 0, stop.capacity(), stop, 0, stop.capacity());
   }
 
   /**
@@ -78,8 +53,8 @@ class FastKeyComparator implements Comparator<byte[]> {
    * @param length2 How much to compare from the right buffer
    * @return 0 if equal, less 0 if left is less than right, etc.
    */
-  public static int compareTo(byte[] buffer1, int offset1, int length1,
-                              byte[] buffer2, int offset2, int length2) {
+  public static int compareTo(DirectBuffer buffer1, int offset1, int length1,
+                              DirectBuffer buffer2, int offset2, int length2) {
     // Short circuit equal case
     if (buffer1 == buffer2 &&
       offset1 == offset2 &&
@@ -88,8 +63,6 @@ class FastKeyComparator implements Comparator<byte[]> {
     }
     int minLength = Math.min(length1, length2);
     int minWords = minLength / LONG_BYTES;
-    int offset1Adj = offset1 + BYTE_ARRAY_BASE_OFFSET;
-    int offset2Adj = offset2 + BYTE_ARRAY_BASE_OFFSET;
 
     /*
      * Compare 8 bytes at a time. Benchmarking shows comparing 8 bytes at a
@@ -97,8 +70,8 @@ class FastKeyComparator implements Comparator<byte[]> {
      * On the other hand, it is substantially faster on 64-bit.
      */
     for (int i = 0; i < minWords * LONG_BYTES; i += LONG_BYTES) {
-      long lw = theUnsafe.getLong(buffer1, offset1Adj + (long) i);
-      long rw = theUnsafe.getLong(buffer2, offset2Adj + (long) i);
+      long lw = buffer1.getLong(i);
+      long rw = buffer2.getLong(i);
       long diff = lw ^ rw;
 
       if (diff != 0) {
@@ -133,8 +106,8 @@ class FastKeyComparator implements Comparator<byte[]> {
     // The epilogue to cover the last (minLength % 8) elements.
     for (int i = minWords * LONG_BYTES; i < minLength; i++) {
       int result = compare(
-        buffer1[offset1 + i],
-        buffer2[offset2 + i]);
+        buffer1.getByte(offset1 + i),
+        buffer2.getByte(offset2 + i));
       if (result != 0) {
         return result;
       }

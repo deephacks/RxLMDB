@@ -43,7 +43,7 @@ public class TransactionTest {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9));
     tx.commit();
-    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
+    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -54,7 +54,7 @@ public class TransactionTest {
     db.put(tx, Observable.from(_1_to_9).subscribeOn(Schedulers.io()));
     Thread.sleep(200);
     tx.commit();
-    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
+    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -67,7 +67,7 @@ public class TransactionTest {
       .finallyDo(() -> tx.commit());
     db.put(tx, obs);
     Thread.sleep(200);
-    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
+    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -88,7 +88,7 @@ public class TransactionTest {
   public void testScanWithinTxThenAbort() {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9));
-    LinkedList<KeyValue> expected = Fixture.range(_1, _9);
+    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     // should see values within same yet-to-commit tx
     db.scan(tx, KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());

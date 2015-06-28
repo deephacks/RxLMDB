@@ -14,6 +14,9 @@
 
 package org.deephacks.rxlmdb;
 
+/**
+ * Ranges are inclusive and keys are prefix matched.
+ */
 public class KeyRange {
   public final byte[] start;
   public final byte[] stop;
@@ -50,7 +53,7 @@ public class KeyRange {
   }
 
   public static KeyRange range(byte[] start, byte[] stop) {
-    if (new FastKeyComparator().compare(start, stop) < 0) {
+    if (DirectBufferComparator.compareTo(start, stop) < 0) {
       return new KeyRange(start, stop, true);
     } else {
       return new KeyRange(start, stop, false);

@@ -1,6 +1,5 @@
 package org.deephacks.rxlmdb;
 
-import org.fusesource.lmdbjni.DirectBuffer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +10,7 @@ import java.util.NoSuchElementException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.Fixture.*;
+import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 import static org.junit.Assert.assertTrue;
 
 public class ScanTest {
@@ -31,26 +31,31 @@ public class ScanTest {
   @Test
   public void testScanRangeForward() {
     LinkedList<KeyValue> expected = Fixture.range(__2, __3);
-    db.scan(KeyRange.range(_2, _3))
+    toStreamBlocking(db.scan(KeyRange.range(_2, _3)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    System.out.println(expected);
+    assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testScanSingleRange() {
+    LinkedList<KeyValue> expected = Fixture.range(__1, __1);
+    toStreamBlocking(db.scan(KeyRange.range(_1, _1)))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 
   @Test
   public void testScanRangeBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __2);
-    db.scan(KeyRange.range(_3, _2))
+    toStreamBlocking(db.scan(KeyRange.range(_3, _2)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    System.out.println(expected);
     assertTrue(expected.isEmpty());
   }
 
   @Test
   public void testScanAtLeast() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __9);
-    System.out.println(expected);
-    db.scan(KeyRange.atLeast(_3))
+    toStreamBlocking(db.scan(KeyRange.atLeast(_3)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -58,7 +63,7 @@ public class ScanTest {
   @Test
   public void testScanAtLeastBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __1);
-    db.scan(KeyRange.atLeastBackward(__3))
+    toStreamBlocking(db.scan(KeyRange.atLeastBackward(__3)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -66,16 +71,15 @@ public class ScanTest {
   @Test
   public void testScanAtMost() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __4);
-    db.scan(KeyRange.atMost(_4))
+    toStreamBlocking(db.scan(KeyRange.atMost(_4)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    System.out.println(expected);
     assertTrue(expected.isEmpty());
   }
 
   @Test
   public void testScanAtMostBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __4);
-    db.scan(KeyRange.atMostBackward(_4))
+    toStreamBlocking(db.scan(KeyRange.atMostBackward(_4)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -83,7 +87,7 @@ public class ScanTest {
   @Test
   public void testScanForward() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
-    db.scan(KeyRange.forward())
+    toStreamBlocking(db.scan(KeyRange.forward()))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -91,7 +95,7 @@ public class ScanTest {
   @Test
   public void testScanBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __1);
-    db.scan(KeyRange.backward())
+    toStreamBlocking(db.scan(KeyRange.backward()))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -99,7 +103,7 @@ public class ScanTest {
   @Test
   public void testScanMapper() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
-    db.scan((key, value) -> key.getByte(0))
+    toStreamBlocking(db.scan((key, value) -> key.getByte(0)))
       .forEach(k -> assertThat(expected.pollFirst().key[0]).isEqualTo(k));
     assertTrue(expected.isEmpty());
   }

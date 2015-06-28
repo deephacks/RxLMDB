@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import static org.deephacks.rxlmdb.Fixture.*;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
@@ -46,9 +47,9 @@ public class TransactionTest {
     tx.commit();
     tx = lmdb.writeTx();
     db.delete(tx, Observable.from(keys));
-    assertThat(RxObservables.toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
+    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
     tx.abort();
-    assertThat(RxObservables.toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
   }
 
   @Test
@@ -57,7 +58,8 @@ public class TransactionTest {
     db.put(tx, Observable.from(_1_to_9));
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
-    db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    toStreamBlocking(db.scan(KeyRange.forward()))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 
@@ -68,9 +70,9 @@ public class TransactionTest {
     tx.commit();
     tx = lmdb.writeTx();
     db.delete(tx, Observable.from(keys));
-    assertThat(RxObservables.toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
+    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
     tx.commit();
-    assertThat(RxObservables.toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
   }
 
   @Test
@@ -80,9 +82,9 @@ public class TransactionTest {
     tx.commit();
     tx = lmdb.writeTx();
     db.delete(tx);
-    assertThat(RxObservables.toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
+    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
     tx.commit();
-    assertThat(RxObservables.toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
   }
 
   @Test
@@ -92,7 +94,7 @@ public class TransactionTest {
     tx.commit();
     db.delete(KeyRange.atMost(new byte[]{5, 5}));
     LinkedList<KeyValue> expected = Fixture.range(__6, __9);
-    db.scan(KeyRange.forward())
+    toStreamBlocking(db.scan(KeyRange.forward()))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
@@ -104,7 +106,8 @@ public class TransactionTest {
     Thread.sleep(200);
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
-    db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    toStreamBlocking(db.scan(KeyRange.forward()))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 
@@ -117,7 +120,8 @@ public class TransactionTest {
     db.put(tx, obs);
     Thread.sleep(200);
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
-    db.scan(KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    toStreamBlocking(db.scan(KeyRange.forward()))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
   }
 
@@ -139,7 +143,8 @@ public class TransactionTest {
     db.put(tx, Observable.from(_1_to_9));
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     // should see values within same yet-to-commit tx
-    db.scan(tx, KeyRange.forward()).forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    toStreamBlocking(db.scan(tx, KeyRange.forward()))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
     tx.abort();
     // aborted so NoSuchElementException is expected

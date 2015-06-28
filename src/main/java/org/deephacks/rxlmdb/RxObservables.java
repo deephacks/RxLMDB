@@ -15,11 +15,18 @@ package org.deephacks.rxlmdb;
 
 import rx.Observable;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 class RxObservables {
-  static <T> Stream<T> toStreamBlocking(Observable<T> observable) {
-    return StreamSupport.stream(observable.toBlocking().toIterable().spliterator(), false);
+  static <T> Stream<T> toStreamBlocking(Observable<List<T>> observable) {
+    Stream<List<T>> stream = StreamSupport.stream(observable.toBlocking().toIterable().spliterator(), false);
+    Stream<T> reduce = stream.map(list -> list.spliterator())
+      .map(split -> StreamSupport.stream(split, false))
+      .reduce(Stream.empty(), (s1, s2) -> Stream.concat(s1, s2));
+    return reduce;
   }
 }

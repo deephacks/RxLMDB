@@ -19,6 +19,7 @@ import rx.Scheduler;
 import rx.Subscriber;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
@@ -29,6 +30,7 @@ public class RxDB {
   final Database db;
   final String name;
   final Scheduler scheduler;
+  final int defaultBuffer = 512;
 
   private RxDB(Builder builder) {
     this.lmdb = builder.lmdb;
@@ -37,35 +39,55 @@ public class RxDB {
     this.scheduler = lmdb.scheduler;
   }
 
-  public <T> Observable<T> scan(Scan<T> scan) {
-    return scan(null, scan);
+  public <T> Observable<List<T>> scan(Scan<T> scan) {
+    return scan(defaultBuffer, null, scan);
   }
 
-  public Observable<KeyValue> scan(KeyRange... ranges) {
-    return scan(null, scanDefault, ranges);
+  public <T> Observable<List<T>> scan(int buffer, Scan<T> scan) {
+    return scan(buffer, null, scan);
   }
 
-  public Observable<KeyValue> scan(RxTx tx, KeyRange... ranges) {
-    return scan(tx, scanDefault, ranges);
+  public Observable<List<KeyValue>> scan(KeyRange... ranges) {
+    return scan(defaultBuffer, null, scanDefault, ranges);
   }
 
-  public <T> Observable<T> scan(Scan<T> scan, KeyRange... ranges) {
-    return scan(null, scan, ranges);
+  public Observable<List<KeyValue>> scan(int buffer, KeyRange... ranges) {
+    return scan(buffer, null, scanDefault, ranges);
   }
 
-  public <T> Observable<T> scan(RxTx tx, Scan<T> scan, KeyRange... ranges) {
-    return scan(tx, scan, false, ranges);
+  public Observable<List<KeyValue>> scan(RxTx tx, KeyRange... ranges) {
+    return scan(defaultBuffer, tx, scanDefault, ranges);
   }
 
-  private <T> Observable<T> scan(RxTx tx, Scan<T> scan, boolean delete, KeyRange... ranges) {
+  public Observable<List<KeyValue>> scan(int buffer, RxTx tx, KeyRange... ranges) {
+    return scan(buffer, tx, scanDefault, ranges);
+  }
+
+  public <T> Observable<List<T>> scan(Scan<T> scan, KeyRange... ranges) {
+    return scan(defaultBuffer, null, scan, ranges);
+  }
+
+  public <T> Observable<List<T>> scan(int buffer, Scan<T> scan, KeyRange... ranges) {
+    return scan(buffer, null, scan, ranges);
+  }
+
+  public <T> Observable<List<T>> scan(RxTx tx, Scan<T> scan, KeyRange... ranges) {
+    return scan(defaultBuffer, tx, scan, false, ranges);
+  }
+
+  public <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
+    return scan(buffer, tx, scan, false, ranges);
+  }
+
+  private <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, boolean delete, KeyRange... ranges) {
     if (ranges.length == 0) {
-      return Observable.create(new OnScanSubscribe(this, tx, scan, KeyRange.forward(), delete));
+      return Observable.create(new OnScanSubscribe(this, tx, scan, KeyRange.forward(), delete)).buffer(buffer);
     } else if (ranges.length == 1) {
-      return Observable.create(new OnScanSubscribe(this, tx, scan, ranges[0], delete));
+      return Observable.create(new OnScanSubscribe(this, tx, scan, ranges[0], delete)).buffer(buffer);
     }
     return Arrays.asList(ranges).stream()
       .map(range -> Observable.create(new OnScanSubscribe(this, tx, scan, range, delete))
-        .subscribeOn(scheduler))
+        .buffer(buffer).onBackpressureBuffer().subscribeOn(scheduler))
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }
 
@@ -74,7 +96,7 @@ public class RxDB {
   }
 
   public void delete(RxTx tx, KeyRange... keys) {
-    scan(tx, scanDefault, true, keys).subscribe();
+    scan(100, tx, scanDefault, true, keys).subscribe();
   }
 
   public void delete(Observable<byte[]> keys) {
@@ -152,6 +174,7 @@ public class RxDB {
 
     @Override
     public void onError(Throwable e) {
+      e.printStackTrace();
       tx.abort();
     }
 

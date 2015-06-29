@@ -18,11 +18,8 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 
 public class RxDB {
   final Scan.ScanDefault scanDefault = new Scan.ScanDefault();
@@ -40,19 +37,19 @@ public class RxDB {
   }
 
   public <T> Observable<List<T>> scan(Scan<T> scan) {
-    return scan(defaultBuffer, null, scan);
+    return scan(defaultBuffer, lmdb.internalReadTx(), scan);
   }
 
   public <T> Observable<List<T>> scan(int buffer, Scan<T> scan) {
-    return scan(buffer, null, scan);
+    return scan(buffer, lmdb.internalReadTx(), scan);
   }
 
   public Observable<List<KeyValue>> scan(KeyRange... ranges) {
-    return scan(defaultBuffer, null, scanDefault, ranges);
+    return scan(defaultBuffer, lmdb.internalReadTx(), scanDefault, ranges);
   }
 
   public Observable<List<KeyValue>> scan(int buffer, KeyRange... ranges) {
-    return scan(buffer, null, scanDefault, ranges);
+    return scan(buffer, lmdb.internalReadTx(), scanDefault, ranges);
   }
 
   public Observable<List<KeyValue>> scan(RxTx tx, KeyRange... ranges) {
@@ -64,40 +61,28 @@ public class RxDB {
   }
 
   public <T> Observable<List<T>> scan(Scan<T> scan, KeyRange... ranges) {
-    return scan(defaultBuffer, null, scan, ranges);
+    return scan(defaultBuffer, lmdb.internalReadTx(), scan, ranges);
   }
 
   public <T> Observable<List<T>> scan(int buffer, Scan<T> scan, KeyRange... ranges) {
-    return scan(buffer, null, scan, ranges);
+    return scan(buffer, lmdb.internalReadTx(), scan, ranges);
   }
 
   public <T> Observable<List<T>> scan(RxTx tx, Scan<T> scan, KeyRange... ranges) {
-    return scan(defaultBuffer, tx, scan, false, ranges);
+    return scan(defaultBuffer, tx, scan, ranges);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
-    return scan(buffer, tx, scan, false, ranges);
+  private <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
+    return Scanners.scan(db, tx, scan, scheduler, buffer, ranges);
   }
 
-  private <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, boolean delete, KeyRange... ranges) {
-    if (ranges.length == 0) {
-      return Observable.create(new OnScanSubscribe(this, tx, scan, KeyRange.forward(), delete)).buffer(buffer);
-    } else if (ranges.length == 1) {
-      return Observable.create(new OnScanSubscribe(this, tx, scan, ranges[0], delete)).buffer(buffer);
-    }
-    return Arrays.asList(ranges).stream()
-      .map(range -> Observable.create(new OnScanSubscribe(this, tx, scan, range, delete))
-        .buffer(buffer).onBackpressureBuffer().subscribeOn(scheduler))
-      .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
-  }
-
-  public void delete(KeyRange... keys) {
-    delete(null, keys);
-  }
-
-  public void delete(RxTx tx, KeyRange... keys) {
-    scan(100, tx, scanDefault, true, keys).subscribe();
-  }
+//  public void delete(KeyRange... keys) {
+//    delete(lmdb.internalWriteTx(), keys);
+//  }
+//
+//  public void delete(RxTx tx, KeyRange... keys) {
+//    scan(100, tx, scanDefault, true, keys).subscribe();
+//  }
 
   public void delete(Observable<byte[]> keys) {
     delete(null, keys);
@@ -212,73 +197,73 @@ public class RxDB {
       db.delete(tx.tx, key);
     }
   }
-
-  private static class OnScanSubscribe<T> implements Observable.OnSubscribe<T> {
-    private RxTx tx;
-    private boolean closeTx;
-    private final RxDB db;
-    private final KeyRange range;
-    private final Scan<T> scan;
-    private final boolean delete;
-
-    private OnScanSubscribe(RxDB db, RxTx tx, Scan<T> scan, KeyRange range, boolean delete) {
-      this.range = range;
-      this.db = db;
-      this.tx = tx;
-      this.scan = scan;
-      this.delete = delete;
-    }
-
-    @Override
-    public void call(Subscriber<? super T> subscriber) {
-      try {
-        this.closeTx = tx != null ? false : true;
-        this.tx = tx != null ? tx : (delete ? db.lmdb.writeTx() : db.lmdb.readTx());
-        BufferCursor cursor = db.db.bufferCursor(tx.tx);
-        DirectBuffer stop = range.stop != null ? new DirectBuffer(range.stop) : new DirectBuffer(new byte[0]);
-        boolean hasNext = range.start != null ? cursor.seek(range.start) :
-          (range.forward ? cursor.next() : cursor.prev());
-        while (hasNext) {
-          if (range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) <= 0) {
-            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
-            if (result != null) {
-              if (delete) {
-                db.db.delete(tx.tx, cursor.keyBuffer());
-              } else {
-                subscriber.onNext(result);
-              }
-            }
-          } else if (!range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) >= 0) {
-            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
-            if (result != null) {
-              if (delete) {
-                db.db.delete(tx.tx, cursor.keyBuffer());
-              } else {
-                subscriber.onNext(result);
-              }
-            }
-          } else if (range.stop == null) {
-            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
-            if (result != null) {
-              if (delete) {
-                db.db.delete(tx.tx, cursor.keyBuffer());
-              } else {
-                subscriber.onNext(result);
-              }
-            }
-          } else {
-            break;
-          }
-          hasNext = range.forward ? cursor.next() : cursor.prev();
-        }
-      } catch (Throwable e) {
-        subscriber.onError(e);
-      } finally {
-        if (closeTx) {
-          tx.commit();
-        }
-      }
-      subscriber.onCompleted();
-    }
-  }
+//
+//  private static class OnScanSubscribe<T> implements Observable.OnSubscribe<T> {
+//    private RxTx tx;
+//    private boolean closeTx;
+//    private final RxDB db;
+//    private final KeyRange range;
+//    private final Scan<T> scan;
+//    private final boolean delete;
+//
+//    private OnScanSubscribe(RxDB db, RxTx tx, Scan<T> scan, KeyRange range, boolean delete) {
+//      this.range = range;
+//      this.db = db;
+//      this.tx = tx;
+//      this.scan = scan;
+//      this.delete = delete;
+//    }
+//
+//    @Override
+//    public void call(Subscriber<? super T> subscriber) {
+//      try {
+//        this.closeTx = tx != null ? false : true;
+//        this.tx = tx != null ? tx : (delete ? db.lmdb.writeTx() : db.lmdb.readTx());
+//        BufferCursor cursor = db.db.bufferCursor(tx.tx);
+//        DirectBuffer stop = range.stop != null ? new DirectBuffer(range.stop) : new DirectBuffer(new byte[0]);
+//        boolean hasNext = range.start != null ? cursor.seek(range.start) :
+//          (range.forward ? cursor.next() : cursor.prev());
+//        while (hasNext) {
+//          if (range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) <= 0) {
+//            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+//            if (result != null) {
+//              if (delete) {
+//                db.db.delete(tx.tx, cursor.keyBuffer());
+//              } else {
+//                subscriber.onNext(result);
+//              }
+//            }
+//          } else if (!range.forward && range.stop != null && compareTo(cursor.keyBuffer(), stop) >= 0) {
+//            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+//            if (result != null) {
+//              if (delete) {
+//                db.db.delete(tx.tx, cursor.keyBuffer());
+//              } else {
+//                subscriber.onNext(result);
+//              }
+//            }
+//          } else if (range.stop == null) {
+//            T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+//            if (result != null) {
+//              if (delete) {
+//                db.db.delete(tx.tx, cursor.keyBuffer());
+//              } else {
+//                subscriber.onNext(result);
+//              }
+//            }
+//          } else {
+//            break;
+//          }
+//          hasNext = range.forward ? cursor.next() : cursor.prev();
+//        }
+//      } catch (Throwable e) {
+//        subscriber.onError(e);
+//      } finally {
+//        if (closeTx) {
+//          tx.commit();
+//        }
+//      }
+//      subscriber.onCompleted();
+//    }
+//  }
 }

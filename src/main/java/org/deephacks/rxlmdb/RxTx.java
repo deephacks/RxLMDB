@@ -18,9 +18,11 @@ import org.fusesource.lmdbjni.Transaction;
 
 public class RxTx {
   final Transaction tx;
+  final boolean isUserManaged;
 
-  RxTx(Transaction tx) {
+  RxTx(Transaction tx, boolean isUserManaged) {
     this.tx = tx;
+    this.isUserManaged = isUserManaged;
   }
 
   public void abort() {

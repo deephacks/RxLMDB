@@ -60,11 +60,19 @@ public class RxLMDB {
   }
 
   public RxTx writeTx() {
-    return new RxTx(env.createWriteTransaction());
+    return new RxTx(env.createWriteTransaction(), true);
   }
 
   public RxTx readTx() {
-    return new RxTx(env.createReadTransaction());
+    return new RxTx(env.createReadTransaction(), true);
+  }
+
+  RxTx internalReadTx() {
+    return new RxTx(env.createReadTransaction(), false);
+  }
+
+  RxTx internalWriteTx() {
+    return new RxTx(env.createWriteTransaction(), false);
   }
 
   public static class Builder {

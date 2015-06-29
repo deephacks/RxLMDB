@@ -74,30 +74,30 @@ public class TransactionTest {
     tx.commit();
     assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
   }
-
-  @Test
-  public void testDeleteAll() {
-    RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(_1_to_9));
-    tx.commit();
-    tx = lmdb.writeTx();
-    db.delete(tx);
-    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
-    tx.commit();
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
-  }
-
-  @Test
-  public void testDeleteRange() {
-    RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(_1_to_9));
-    tx.commit();
-    db.delete(KeyRange.atMost(new byte[]{5, 5}));
-    LinkedList<KeyValue> expected = Fixture.range(__6, __9);
-    toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    assertTrue(expected.isEmpty());
-  }
+//
+//  @Test
+//  public void testDeleteAll() {
+//    RxTx tx = lmdb.writeTx();
+//    db.put(tx, Observable.from(_1_to_9));
+//    tx.commit();
+//    tx = lmdb.writeTx();
+//    db.delete(tx);
+//    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
+//    tx.commit();
+//    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
+//  }
+//
+//  @Test
+//  public void testDeleteRange() {
+//    RxTx tx = lmdb.writeTx();
+//    db.put(tx, Observable.from(_1_to_9));
+//    tx.commit();
+//    db.delete(KeyRange.atMost(new byte[]{5, 5}));
+//    LinkedList<KeyValue> expected = Fixture.range(__6, __9);
+//    toStreamBlocking(db.scan(KeyRange.forward()))
+//      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+//    assertTrue(expected.isEmpty());
+//  }
 
   @Test
   public void testWriteAndCommitTxOnSeparateThreads() throws InterruptedException {

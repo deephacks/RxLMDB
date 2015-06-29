@@ -14,49 +14,57 @@
 
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.BufferCursor;
+
+import static org.deephacks.rxlmdb.KeyRange.KeyRangeType.*;
+
 /**
  * Ranges are inclusive and keys are prefix matched.
  */
 public class KeyRange {
   public final byte[] start;
   public final byte[] stop;
-  public final boolean forward;
+  public final KeyRangeType type;
 
-  private KeyRange(byte[] start, byte[] stop, boolean forward) {
+  private KeyRange(byte[] start, byte[] stop, KeyRangeType type) {
     this.start = start;
     this.stop = stop;
-    this.forward = forward;
+    this.type = type;
   }
 
   public static KeyRange forward() {
-    return new KeyRange(null, null, true);
+    return new KeyRange(null, null, FORWARD);
   }
 
   public static KeyRange backward() {
-    return new KeyRange(null, null, false);
+    return new KeyRange(null, null, BACKWARD);
   }
 
   public static KeyRange atLeast(byte[] start) {
-    return new KeyRange(start, null, true);
+    return new KeyRange(start, null, FORWARD_START);
   }
 
   public static KeyRange atLeastBackward(byte[] start) {
-    return new KeyRange(start, null, false);
+    return new KeyRange(start, null, BACKWARD_START);
   }
 
   public static KeyRange atMost(byte[] stop) {
-    return new KeyRange(null, stop, true);
+    return new KeyRange(null, stop, FORWARD_STOP);
   }
 
   public static KeyRange atMostBackward(byte[] stop) {
-    return new KeyRange(null, stop, false);
+    return new KeyRange(null, stop, BACKWARD_STOP);
   }
 
   public static KeyRange range(byte[] start, byte[] stop) {
     if (DirectBufferComparator.compareTo(start, stop) <= 0) {
-      return new KeyRange(start, stop, true);
+      return new KeyRange(start, stop, FOWARD_RANGE);
     } else {
-      return new KeyRange(start, stop, false);
+      return new KeyRange(start, stop, BACKWARD_RANGE);
     }
+  }
+
+  enum KeyRangeType {
+    FORWARD, FORWARD_START, FORWARD_STOP, FOWARD_RANGE, BACKWARD, BACKWARD_START, BACKWARD_STOP, BACKWARD_RANGE
   }
 }

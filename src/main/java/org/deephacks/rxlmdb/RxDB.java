@@ -36,6 +36,32 @@ public class RxDB {
     this.scheduler = lmdb.scheduler;
   }
 
+  public Observable<byte[]> get(byte[] key) {
+    return get(key, lmdb.internalReadTx());
+  }
+
+  public Observable<byte[]> get(byte[] key, RxTx tx) {
+    return Observable.create(subscriber -> {
+        try {
+          byte[] value = db.get(tx.tx, key);
+          if (value != null) {
+            subscriber.onNext(value);
+          }
+          subscriber.onCompleted();
+        } catch (Throwable t) {
+          if (!tx.isUserManaged) {
+            tx.abort();
+          }
+          subscriber.onError(t);
+        } finally {
+          if (!tx.isUserManaged) {
+            tx.abort();
+          }
+        }
+      }
+    );
+  }
+
   public <T> Observable<List<T>> scan(Scan<T> scan) {
     return scan(defaultBuffer, lmdb.internalReadTx(), scan);
   }
@@ -197,6 +223,7 @@ public class RxDB {
       db.delete(tx.tx, key);
     }
   }
+
 //
 //  private static class OnScanSubscribe<T> implements Observable.OnSubscribe<T> {
 //    private RxTx tx;

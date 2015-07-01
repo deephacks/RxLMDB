@@ -32,4 +32,11 @@ class RxObservables {
       .reduce(Stream.empty(), (s1, s2) -> Stream.concat(s1, s2));
     return reduce;
   }
+
+  static <T> Stream<T> toSingleStreamBlocking(Observable<T> observable) {
+    return StreamSupport.stream(observable
+      .doOnError(Exceptions::propagate)
+      .toBlocking().toIterable().spliterator(), false);
+  }
+
 }

@@ -157,6 +157,11 @@ public class ScanTest {
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testScanEmptyRange() {
+     db.scan(KeyRange.range(new byte[]{12}, new byte[]{123})).toBlocking().first();
+  }
+
   @Test
   public void testScanMapper() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);

@@ -6,6 +6,7 @@ import org.junit.Test;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
@@ -74,25 +75,46 @@ public class TransactionTest {
     tx.commit();
     assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
   }
-//
-//  @Test
-//  public void testDeleteAll() {
-//    RxTx tx = lmdb.writeTx();
-//    db.put(tx, Observable.from(_1_to_9));
-//    tx.commit();
-//    tx = lmdb.writeTx();
-//    db.delete(tx);
-//    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
-//    tx.commit();
-//    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
-//  }
-//
+
+  @Test
+  public void testDeleteAll() {
+    db.put(Observable.from(_1_to_9));
+    db.delete();
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
+  }
+
+  @Test
+  public void testDeleteAllAbort() {
+    db.put(Observable.from(_1_to_9));
+    RxTx tx = lmdb.writeTx();
+    db.delete(tx);
+    tx.abort();
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
+  }
+
+  @Test
+  public void testDeleteKeys() throws InterruptedException {
+    db.put(Observable.from(_1_to_9));
+    db.delete(Observable.from(Arrays.asList( __2, __3)));
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(7L);
+  }
+
+  @Test
+  public void testDeleteKeysAbort() {
+    db.put(Observable.from(_1_to_9));
+    RxTx tx = lmdb.writeTx();
+    db.delete(tx, Observable.from(Arrays.asList(__2, __3)));
+    tx.abort();
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
+  }
+
+
 //  @Test
 //  public void testDeleteRange() {
 //    RxTx tx = lmdb.writeTx();
 //    db.put(tx, Observable.from(_1_to_9));
 //    tx.commit();
-//    db.delete(KeyRange.atMost(new byte[]{5, 5}));
+//    db.delete(tx, KeyRange.atMost(new byte[]{5, 5}));
 //    LinkedList<KeyValue> expected = Fixture.range(__6, __9);
 //    toStreamBlocking(db.scan(KeyRange.forward()))
 //      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));

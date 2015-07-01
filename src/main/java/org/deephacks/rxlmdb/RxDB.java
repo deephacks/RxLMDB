@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p/>
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,6 +36,14 @@ public class RxDB {
     this.scheduler = lmdb.scheduler;
   }
 
+  public void put(Observable<KeyValue> values) {
+    put(null, values);
+  }
+
+  public void put(RxTx tx, Observable<KeyValue> values) {
+    values.subscribe(new PutSubscriber(this, tx));
+  }
+
   public Observable<byte[]> get(byte[] key) {
     return get(key, lmdb.internalReadTx());
   }
@@ -60,6 +68,28 @@ public class RxDB {
         }
       }
     );
+  }
+
+  public void delete() {
+    delete(lmdb.internalWriteTx());
+  }
+
+  public void delete(RxTx tx) {
+    // non-blocking needed?
+    scan(tx).toBlocking().forEach(keyValues -> {
+      Observable<byte[]> keys = keyValues.stream()
+        .map(kv -> Observable.just(kv.key))
+        .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
+      delete(tx, keys);
+    });
+  }
+
+  public void delete(Observable<byte[]> keys) {
+    delete(lmdb.internalWriteTx(), keys);
+  }
+
+  public void delete(RxTx tx, Observable<byte[]> keys) {
+    keys.subscribe(new DeleteSubscriber(this, tx));
   }
 
   public <T> Observable<List<T>> scan(Scan<T> scan) {
@@ -100,30 +130,6 @@ public class RxDB {
 
   private <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
     return Scanners.scan(db, tx, scan, scheduler, buffer, ranges);
-  }
-
-//  public void delete(KeyRange... keys) {
-//    delete(lmdb.internalWriteTx(), keys);
-//  }
-//
-//  public void delete(RxTx tx, KeyRange... keys) {
-//    scan(100, tx, scanDefault, true, keys).subscribe();
-//  }
-
-  public void delete(Observable<byte[]> keys) {
-    delete(null, keys);
-  }
-
-  public void delete(RxTx tx, Observable<byte[]> keys) {
-    keys.subscribe(new DeleteSubscriber(this, tx));
-  }
-
-  public void put(Observable<KeyValue> values) {
-    put(null, values);
-  }
-
-  public void put(RxTx tx, Observable<KeyValue> values) {
-    values.subscribe(new PutSubscriber(this, tx));
   }
 
   public static Builder builder() {
@@ -198,24 +204,24 @@ public class RxDB {
   private static class DeleteSubscriber extends Subscriber<byte[]> {
     final RxTx tx;
     final Database db;
-    final boolean closeTx;
 
     private DeleteSubscriber(RxDB db, RxTx tx) {
-      this.closeTx = tx != null ? false : true;
-      this.tx = tx != null ? tx : db.lmdb.writeTx();
+      this.tx = tx;
       this.db = db.db;
     }
 
     @Override
     public void onCompleted() {
-      if (closeTx) {
+      if (!tx.isUserManaged) {
         tx.commit();
       }
     }
 
     @Override
     public void onError(Throwable e) {
-      tx.abort();
+      if (!tx.isUserManaged) {
+        tx.abort();
+      }
     }
 
     @Override

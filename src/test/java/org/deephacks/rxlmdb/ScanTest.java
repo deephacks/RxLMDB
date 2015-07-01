@@ -104,6 +104,23 @@ public class ScanTest {
   }
 
   @Test
+  public void testScanForwardUnsubscribeBeforeBufferDrained() throws InterruptedException {
+    LinkedList<KeyValue> expected = Fixture.range(__1, __6);
+    toStreamBlocking(db.scan(KeyRange.forward()).takeWhile(kvs -> {
+      KeyValue kv = null;
+      for (int i = 0; i < kvs.size(); i++) {
+        kv = kvs.get(i);
+        if (kv.key[0] > 6) {
+          return false;
+        }
+        assertThat(kv.key).isEqualTo(expected.pollFirst().key);
+      }
+      return true;
+    }));
+    assertThat(expected).isEqualTo(new LinkedList<>());
+  }
+
+  @Test
   public void testScanBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __1);
     toStreamBlocking(db.scan(KeyRange.backward()))
@@ -119,6 +136,23 @@ public class ScanTest {
       byte[] key = expected.pollFirst().key;
       assertThat(key).isEqualTo(kvs.get(0).key);
       return key[0] > 6;
+    }));
+    assertThat(expected).isEqualTo(new LinkedList<>());
+  }
+
+  @Test
+  public void testScanBackwardUnsubscribeBeforeBufferDrained() throws InterruptedException {
+    LinkedList<KeyValue> expected = Fixture.range(__9, __6);
+    toStreamBlocking(db.scan(KeyRange.backward()).takeWhile(kvs -> {
+      KeyValue kv = null;
+      for (int i = 0; i < kvs.size(); i++) {
+        kv = kvs.get(i);
+        if (kv.key[0] < 6) {
+          return false;
+        }
+        assertThat(kv.key).isEqualTo(expected.pollFirst().key);
+      }
+      return true;
     }));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }

@@ -27,23 +27,7 @@ public class ParallelRangeScanTest {
     db.lmdb.close();
   }
 
-  @Test
-  public void testParallel() {
-    LinkedList<KeyValue> expected = Fixture.range(__2, __7);
-    Observable<List<KeyValue>> result = db.scan(
-      KeyRange.range(__2, __3),
-      KeyRange.range(__4, __5),
-      KeyRange.range(__6, __7)
-    );
-    RxObservables.toStreamBlocking(result)
-      .map(kv -> kv.key)
-      .sorted(DirectBufferComparator.byteArrayComparator())
-      .forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
-    assertTrue(expected.isEmpty());
-  }
-
-
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testParallelDifferentTx() {
     LinkedList<KeyValue> expected = Fixture.range(__2, __5);
     Observable<List<KeyValue>> result = db.scan(KeyRange.range(__2, __3), KeyRange.range(__4, __5));

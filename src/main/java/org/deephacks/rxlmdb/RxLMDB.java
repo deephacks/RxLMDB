@@ -31,7 +31,8 @@ public class RxLMDB {
     Optional.ofNullable(builder.size)
       .ifPresent(size -> this.env.setMapSize(size));
     this.path = IoUtil.createPathOrTemp(builder.path);
-    this.env.open(path.toString());
+    // do not tie transactions to threads since it breaks parallel range scans
+    this.env.open(path.toString(), Constants.NOTLS);
     this.scheduler = Optional.ofNullable(builder.scheduler)
       .orElse(Schedulers.io());
   }

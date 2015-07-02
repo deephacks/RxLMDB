@@ -112,5 +112,6 @@ Java 8 and RxJava is a real pleasure to work with and since the LMDB API is a bi
     .flatMap(Observable::from)
     .map(kv -> kv.key);
   db.delete(keys);
-```
+  
+```
 

@@ -98,6 +98,12 @@ Java 8 and RxJava is a real pleasure to work with and since the LMDB API is a bi
     KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
     KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
   );
+  
+  // count rows  
+  Integer count = db.scan()
+    .flatMap(Observable::from)
+    .count().toBlocking().first();
+
 
   // delete
   db.delete(Observable.just(new byte[] { 1 }));

@@ -88,6 +88,14 @@ Extending LMDB with RxJava makes it possible for asynchronous and event-based pr
     KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
     KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
   );
+  
+  // zero copy parallel range scans
+  Observable<List<Byte>> obs = db.scan(
+    (key, value) -> key.getByte(0),
+    KeyRange.range(new byte[]{ 1 }, new byte[]{ 1 }),
+    KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
+    KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
+  );
 
   // delete
   db.delete(Observable.just(new byte[] { 1 }));

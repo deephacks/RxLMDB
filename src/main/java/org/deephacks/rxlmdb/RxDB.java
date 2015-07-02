@@ -128,7 +128,7 @@ public class RxDB {
     return scan(defaultBuffer, tx, scan, ranges);
   }
 
-  private <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
+  public <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
     return Scanners.scan(db, tx, scan, scheduler, buffer, ranges);
   }
 

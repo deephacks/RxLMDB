@@ -7,7 +7,10 @@ import org.openjdk.jmh.annotations.*;
 import rx.Observable;
 import rx.Subscriber;
 
+import java.io.IOException;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,9 +26,13 @@ public class JMH {
   RxLMDB lmdb;
 
   @Setup()
-  public void setup() {
-    lmdb = RxLMDB.builder().size(ByteUnit.GIGA, 1).build();
+  public void setup() throws IOException {
+    Files.createDirectories(Paths.get("/tmp/rxlmdb-jmh"));
+    lmdb = RxLMDB.builder().path("/tmp/rxlmdb-jmh").size(ByteUnit.GIGA, 1).build();
     db = RxDB.builder().lmdb(lmdb).build();
+    if (db.scan().count().toBlocking().first() != 0) {
+      return;
+    }
     Observable<KeyValue> observable = Observable.create(new Observable.OnSubscribe<KeyValue>() {
       @Override
       public void call(Subscriber<? super KeyValue> subscriber) {
@@ -36,10 +43,8 @@ public class JMH {
             key.putInt(1, i, ByteOrder.BIG_ENDIAN);
             subscriber.onNext(new KeyValue(key.byteArray(), key.byteArray()));
           }
-          System.out.println(j);
         }
         subscriber.onCompleted();
-        System.out.println("commit done");
       }
     }).doOnError(throwable -> throwable.printStackTrace());
     db.put(observable);

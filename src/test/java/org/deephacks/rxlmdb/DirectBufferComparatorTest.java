@@ -57,7 +57,7 @@ public class DirectBufferComparatorTest {
       Arrays.toString(stop.byteArray()),
       result
     );
-    System.out.println(debug);
+    // System.out.println(debug);
     return result;
   }
 }

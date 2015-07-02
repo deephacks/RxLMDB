@@ -36,6 +36,14 @@ public class ScanTest {
   }
 
   @Test
+  public void testCount() {
+    Integer count = db.scan()
+      .flatMap(Observable::from)
+      .count().toBlocking().first();
+    assertThat(count).isEqualTo(9);
+  }
+
+  @Test
   public void testScanSingleRange() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __1);
     toStreamBlocking(db.scan(KeyRange.range(_1, _1)))

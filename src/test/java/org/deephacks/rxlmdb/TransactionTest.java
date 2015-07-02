@@ -14,7 +14,6 @@ import static org.deephacks.rxlmdb.Fixture.*;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionTest {
@@ -109,17 +108,22 @@ public class TransactionTest {
   }
 
 
-//  @Test
-//  public void testDeleteRange() {
-//    RxTx tx = lmdb.writeTx();
-//    db.put(tx, Observable.from(_1_to_9));
-//    tx.commit();
-//    db.delete(tx, KeyRange.atMost(new byte[]{5, 5}));
-//    LinkedList<KeyValue> expected = Fixture.range(__6, __9);
-//    toStreamBlocking(db.scan(KeyRange.forward()))
-//      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-//    assertTrue(expected.isEmpty());
-//  }
+  @Test
+  public void testDeleteRange() throws InterruptedException {
+    RxTx tx = lmdb.writeTx();
+    db.put(tx, Observable.from(_1_to_9));
+    tx.commit();
+    tx = lmdb.writeTx();
+    Observable<byte[]> keys = db.scan(tx, KeyRange.atMost(new byte[]{5, 5}))
+      .flatMap(Observable::from)
+      .map(kv -> kv.key);
+    db.delete(tx, keys);
+    tx.commit();
+    LinkedList<KeyValue> expected = Fixture.range(__6, __9);
+    toStreamBlocking(db.scan(KeyRange.forward()))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    assertTrue(expected.isEmpty());
+  }
 
   @Test
   public void testWriteAndCommitTxOnSeparateThreads() throws InterruptedException {

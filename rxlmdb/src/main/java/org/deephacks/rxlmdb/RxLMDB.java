@@ -30,9 +30,14 @@ public class RxLMDB {
     this.env = new Env();
     Optional.ofNullable(builder.size)
       .ifPresent(size -> this.env.setMapSize(size));
+    Optional.ofNullable(builder.maxDbs)
+      .ifPresent(size -> this.env.setMaxDbs(builder.maxDbs));
+    Optional.ofNullable(builder.maxReaders)
+      .ifPresent(size -> this.env.setMaxReaders(builder.maxReaders));
     this.path = IoUtil.createPathOrTemp(builder.path);
     // do not tie transactions to threads since it breaks parallel range scans
-    this.env.open(path.toString(), Constants.NOTLS);
+
+    this.env.open(path.toString(), Constants.NOTLS | builder.flags);
     this.scheduler = Optional.ofNullable(builder.scheduler)
       .orElse(Schedulers.io());
   }
@@ -54,6 +59,18 @@ public class RxLMDB {
 
   public long getSize() {
     return env.info().getMapSize();
+  }
+
+  public void copy(String path) {
+    env.copy(path);
+  }
+
+  public void copyCompact(String path) {
+    env.copyCompact(path);
+  }
+
+  public void sync(boolean force) {
+    env.sync(force);
   }
 
   public void close() {
@@ -79,7 +96,10 @@ public class RxLMDB {
   public static class Builder {
     private Optional<Path> path = Optional.empty();
     private long size;
-    public Scheduler scheduler;
+    private Scheduler scheduler;
+    private int flags;
+    private Long maxDbs;
+    private Long maxReaders;
 
     public Builder path(String path) {
       this.path = Optional.ofNullable(Paths.get(path));
@@ -93,6 +113,66 @@ public class RxLMDB {
 
     public Builder scheduler(Scheduler scheduler) {
       this.scheduler = scheduler;
+      return this;
+    }
+
+    public Builder fixedmap() {
+      flags = flags | Constants.FIXEDMAP;
+      return this;
+    }
+
+    public Builder nosubdir() {
+      flags = flags | Constants.NOSUBDIR;
+      return this;
+    }
+
+    public Builder readOnly() {
+      flags = flags | Constants.RDONLY;
+      return this;
+    }
+
+    public Builder writeMap() {
+      flags = flags | Constants.WRITEMAP;
+      return this;
+    }
+
+    public Builder noMetaSync() {
+      flags = flags | Constants.NOMETASYNC;
+      return this;
+    }
+
+    public Builder noSync() {
+      flags = flags | Constants.NOSYNC;
+      return this;
+    }
+
+    public Builder mapAsync() {
+      flags = flags | Constants.MAPASYNC;
+      return this;
+    }
+
+    public Builder noLock() {
+      flags = flags | Constants.NOLOCK;
+      return this;
+    }
+
+    public Builder noReadahead() {
+      flags = flags | Constants.NORDAHEAD;
+      return this;
+    }
+
+    public Builder noMemInit() {
+      flags = flags | Constants.NOMEMINIT;
+      return this;
+    }
+
+    public Builder maxDbs(long size) {
+      maxDbs = size;
+      return this;
+    }
+
+    public Builder maxReaders(long size) {
+      maxReaders = size;
       return this;
     }
 

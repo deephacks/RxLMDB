@@ -98,9 +98,21 @@ public class TransactionTest {
     assertThat(t.get()).isInstanceOf(NullPointerException.class);
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testPutDoOnErrorAbort() throws InterruptedException {
+    RxTx tx = lmdb.writeTx();
+    db.put(tx, Observable.from(new KeyValue[]{values[0], null, values[2]})
+      .doOnError(throwable -> tx.abort()));
+    db.scan(KeyRange.forward()).toBlocking().first();
+  }
+
   @Test
   public void testPutExceptionAsync() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();
+    LinkedList<KeyValue> expected = Fixture.range(__1, __3);
+    toStreamBlocking(db.scan())
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    assertThat(t.get()).isInstanceOf(NullPointerException.class);
     db.put(Observable.just((KeyValue) null)
       .observeOn(Schedulers.io())
       .doOnError(throwable -> t.set(throwable)));

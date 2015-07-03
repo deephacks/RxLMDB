@@ -85,6 +85,17 @@ public class TransactionTest {
   }
 
   @Test
+  public void testPutOnErrorResumeNext() {
+    db.put(Observable.from(new KeyValue[]{values[0], null, values[2]})
+      .onErrorResumeNext(throwable -> {
+        return Observable.just(values[1]);
+      }));
+    LinkedList<KeyValue> expected = Fixture.range(__1, __3);
+    toStreamBlocking(db.scan())
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+  }
+
+  @Test
   public void testPutExceptionAsync() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();
     db.put(Observable.just((KeyValue) null)

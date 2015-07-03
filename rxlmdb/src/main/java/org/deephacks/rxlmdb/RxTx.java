@@ -16,7 +16,9 @@ package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.Transaction;
 
-public class RxTx {
+import java.io.Closeable;
+
+public class RxTx implements Closeable {
   final Transaction tx;
   final boolean isUserManaged;
 

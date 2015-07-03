@@ -40,6 +40,14 @@ public class TransactionTest {
     db.scan(KeyRange.forward()).toBlocking().first();
   }
 
+  @Test(expected = NoSuchElementException.class)
+  public void testAbortWithResources() {
+    try (RxTx tx = lmdb.writeTx()) {
+      db.put(tx, Observable.from(_1_to_9));
+    }
+    db.scan(KeyRange.forward()).toBlocking().first();
+  }
+
   @Test
   public void testAbortDelete() {
     RxTx tx = lmdb.writeTx();

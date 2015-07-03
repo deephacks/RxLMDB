@@ -73,7 +73,7 @@ public class TransactionTest {
     assertTrue(expected.isEmpty());
   }
 
-  @Test
+  @Test(expected = NullPointerException.class)
   public void testPutException() {
     db.put(Observable.just((KeyValue) null));
   }

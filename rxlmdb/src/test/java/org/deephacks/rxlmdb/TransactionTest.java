@@ -100,10 +100,15 @@ public class TransactionTest {
 
   @Test(expected = NoSuchElementException.class)
   public void testPutDoOnErrorAbort() throws InterruptedException {
+    AtomicReference<Throwable> t = new AtomicReference<>();
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(new KeyValue[]{values[0], null, values[2]})
-      .doOnError(throwable -> tx.abort()));
+      .doOnError(throwable -> {
+        t.set(throwable);
+        tx.abort();
+      }));
     db.scan(KeyRange.forward()).toBlocking().first();
+    assertThat(t.get()).isInstanceOf(NullPointerException.class);
   }
 
   @Test

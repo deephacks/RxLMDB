@@ -4,6 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
+import rx.exceptions.Exceptions;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 import java.util.Arrays;
@@ -69,6 +71,11 @@ public class TransactionTest {
     toStreamBlocking(db.scan(KeyRange.forward()))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertTrue(expected.isEmpty());
+  }
+
+  @Test
+  public void testPutException() {
+    db.put(Observable.just((KeyValue) null));
   }
 
   @Test

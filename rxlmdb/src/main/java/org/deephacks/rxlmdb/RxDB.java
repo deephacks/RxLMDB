@@ -17,6 +17,7 @@ import org.fusesource.lmdbjni.*;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
+import rx.observables.BlockingObservable;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,7 +42,11 @@ public class RxDB {
   }
 
   public void put(RxTx tx, Observable<KeyValue> values) {
-    values.subscribe(new PutSubscriber(this, tx));
+    PutSubscriber subscriber = new PutSubscriber(this, tx);
+    values.subscribe(subscriber);
+    if (subscriber.ex != null) {
+      throw subscriber.ex;
+    }
   }
 
   public Observable<byte[]> get(byte[] key) {
@@ -175,6 +180,7 @@ public class RxDB {
     final RxTx tx;
     final Database db;
     final boolean closeTx;
+    RuntimeException ex;
 
     private PutSubscriber(RxDB db, RxTx tx) {
       this.closeTx = tx != null ? false : true;
@@ -191,8 +197,9 @@ public class RxDB {
 
     @Override
     public void onError(Throwable e) {
-      e.printStackTrace();
       tx.abort();
+      ex = e instanceof RuntimeException ?
+        (RuntimeException) e : new RuntimeException(e);
     }
 
     @Override

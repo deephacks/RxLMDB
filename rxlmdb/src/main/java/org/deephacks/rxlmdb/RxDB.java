@@ -14,9 +14,9 @@
 package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.*;
-import rx.Observable;
-import rx.Scheduler;
-import rx.Subscriber;
+import rx.*;
+import rx.exceptions.OnErrorFailedException;
+import rx.functions.Func1;
 import rx.observables.BlockingObservable;
 
 import java.util.List;
@@ -38,15 +38,12 @@ public class RxDB {
   }
 
   public void put(Observable<KeyValue> values) {
-    put(null, values);
+    put(lmdb.internalWriteTx(), values);
   }
 
   public void put(RxTx tx, Observable<KeyValue> values) {
-    PutSubscriber subscriber = new PutSubscriber(this, tx);
-    values.subscribe(subscriber);
-    if (subscriber.ex != null) {
-      throw subscriber.ex;
-    }
+    PutSubscriber putSubscriber = new PutSubscriber(this, tx);
+    values.subscribe(putSubscriber);
   }
 
   public Observable<byte[]> get(byte[] key) {
@@ -179,18 +176,16 @@ public class RxDB {
   private static class PutSubscriber extends Subscriber<KeyValue> {
     final RxTx tx;
     final Database db;
-    final boolean closeTx;
     RuntimeException ex;
 
     private PutSubscriber(RxDB db, RxTx tx) {
-      this.closeTx = tx != null ? false : true;
-      this.tx = tx != null ? tx : db.lmdb.writeTx();
+      this.tx = tx;
       this.db = db.db;
     }
 
     @Override
     public void onCompleted() {
-      if (closeTx) {
+      if (!tx.isUserManaged) {
         tx.commit();
       }
     }
@@ -198,13 +193,15 @@ public class RxDB {
     @Override
     public void onError(Throwable e) {
       tx.abort();
-      ex = e instanceof RuntimeException ?
-        (RuntimeException) e : new RuntimeException(e);
     }
 
     @Override
     public void onNext(KeyValue kv) {
-      db.put(tx.tx, kv.key, kv.value);
+      try {
+        db.put(tx.tx, kv.key, kv.value);
+      } catch (Throwable e) {
+        throw new OnErrorFailedException(e);
+      }
     }
   }
 

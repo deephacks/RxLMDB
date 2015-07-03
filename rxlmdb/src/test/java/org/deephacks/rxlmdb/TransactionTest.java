@@ -5,12 +5,15 @@ import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
 import rx.exceptions.Exceptions;
+import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.deephacks.rxlmdb.Fixture.*;
 
@@ -73,9 +76,22 @@ public class TransactionTest {
     assertTrue(expected.isEmpty());
   }
 
-  @Test(expected = NullPointerException.class)
-  public void testPutException() {
-    db.put(Observable.just((KeyValue) null));
+  @Test
+  public void testPutException() throws InterruptedException {
+    AtomicReference<Throwable> t = new AtomicReference<>();
+    db.put(Observable.just((KeyValue) null)
+      .doOnError(throwable -> t.set(throwable)));
+    assertThat(t.get()).isInstanceOf(NullPointerException.class);
+  }
+
+  @Test
+  public void testPutExceptionAsync() throws InterruptedException {
+    AtomicReference<Throwable> t = new AtomicReference<>();
+    db.put(Observable.just((KeyValue) null)
+      .observeOn(Schedulers.io())
+      .doOnError(throwable -> t.set(throwable)));
+    Thread.sleep(100);
+    assertThat(t.get()).isInstanceOf(NullPointerException.class);
   }
 
   @Test
@@ -109,7 +125,7 @@ public class TransactionTest {
   @Test
   public void testDeleteKeys() throws InterruptedException {
     db.put(Observable.from(_1_to_9));
-    db.delete(Observable.from(Arrays.asList( __2, __3)));
+    db.delete(Observable.from(Arrays.asList(__2, __3)));
     assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(7L);
   }
 
@@ -144,7 +160,7 @@ public class TransactionTest {
   public void testWriteAndCommitTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9).subscribeOn(Schedulers.io()));
-    Thread.sleep(200);
+    Thread.sleep(100);
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
@@ -156,24 +172,24 @@ public class TransactionTest {
   public void testCreateAndCommitTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
     Observable<KeyValue> obs = Observable.from(_1_to_9)
-      .subscribeOn(Schedulers.io())
-      .finallyDo(() -> tx.commit());
+      .subscribeOn(Schedulers.io());
     db.put(tx, obs);
     Thread.sleep(200);
+    tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    assertTrue(expected.isEmpty());
+    assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
   @Test(expected = NoSuchElementException.class)
   public void testCreateAndRollbackTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
     Observable<KeyValue> obs = Observable.from(_1_to_9)
-      .subscribeOn(Schedulers.io())
-      .finallyDo(() -> tx.abort());
+      .subscribeOn(Schedulers.io());
     db.put(tx, obs);
     Thread.sleep(200);
+    tx.abort();
     // aborted so NoSuchElementException is expected
     db.scan(KeyRange.forward()).toBlocking().first();
   }
@@ -186,7 +202,7 @@ public class TransactionTest {
     // should see values within same yet-to-commit tx
     toStreamBlocking(db.scan(tx, KeyRange.forward()))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    assertTrue(expected.isEmpty());
+    assertThat(expected).isEqualTo(new LinkedList<>());
     tx.abort();
     // aborted so NoSuchElementException is expected
     db.scan(KeyRange.forward()).toBlocking().first();

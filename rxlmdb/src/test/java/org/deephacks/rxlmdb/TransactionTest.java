@@ -76,12 +76,13 @@ public class TransactionTest {
     assertTrue(expected.isEmpty());
   }
 
-  @Test
+  @Test(expected = NoSuchElementException.class)
   public void testPutException() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();
     db.put(Observable.just((KeyValue) null)
       .doOnError(throwable -> t.set(throwable)));
     assertThat(t.get()).isInstanceOf(NullPointerException.class);
+    db.scan(KeyRange.forward()).toBlocking().first();
   }
 
   @Test
@@ -107,21 +108,20 @@ public class TransactionTest {
         t.set(throwable);
         tx.abort();
       }));
-    db.scan(KeyRange.forward()).toBlocking().first();
     assertThat(t.get()).isInstanceOf(NullPointerException.class);
+    db.scan(KeyRange.forward()).toBlocking().first();
   }
 
   @Test
   public void testPutExceptionAsync() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();
-    LinkedList<KeyValue> expected = Fixture.range(__1, __3);
-    toStreamBlocking(db.scan())
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    assertThat(t.get()).isInstanceOf(NullPointerException.class);
     db.put(Observable.just((KeyValue) null)
       .observeOn(Schedulers.io())
       .doOnError(throwable -> t.set(throwable)));
     Thread.sleep(100);
+    LinkedList<KeyValue> expected = Fixture.range(__1, __3);
+    toStreamBlocking(db.scan())
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertThat(t.get()).isInstanceOf(NullPointerException.class);
   }
 

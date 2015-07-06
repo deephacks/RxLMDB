@@ -182,8 +182,8 @@
   </profiles>
   <distributionManagement>
     <repository>
-      <id>sonatype-nexus-staging</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <id>jcenter</id>
+      <url>http://jcenter.bintray.com</url>
     </repository>
   </distributionManagement>
 </project>

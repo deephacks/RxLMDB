@@ -22,7 +22,7 @@
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni-linux64</artifactId>
-      <version>0.4.1</version>
+      <version>0.4.2</version>
     </dependency>
     <dependency>
       <groupId>org.openjdk.jmh</groupId>

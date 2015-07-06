@@ -10,3 +10,5 @@ target/
 eclipse-out/
 test-output/
 bin/
+**/*attach_pid*
+*.jfr

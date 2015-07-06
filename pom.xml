@@ -54,6 +54,7 @@
 
   <modules>
     <module>rxlmdb</module>
+    <module>jmh</module>
   </modules>
 
   <build>

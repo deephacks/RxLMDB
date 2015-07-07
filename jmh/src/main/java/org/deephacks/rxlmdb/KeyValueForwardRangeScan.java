@@ -28,12 +28,12 @@ public class KeyValueForwardRangeScan {
   public static class RxThread {
     private final int id = THREAD_ID.getAndIncrement();
     private RxTx tx;
-    private Iterator<Integer> values;
-    private Iterator<List<Integer>> obs;
+    private Iterator<KeyValue> values;
+    private Iterator<List<KeyValue>> obs;
 
     public RxThread() {
       tx = setup.lmdb.readTx();
-      obs = setup.db.scan(tx, (key, value) -> key.getInt(0), ranges[id], ranges[id])
+      obs = setup.db.scan(tx, ranges[id], ranges[id])
         .toBlocking().toIterable().iterator();
       values = obs.next().iterator();
     }
@@ -44,7 +44,7 @@ public class KeyValueForwardRangeScan {
       } else if (obs.hasNext()) {
         values = obs.next().iterator();
       } else {
-        obs = setup.db.scan(100_000, tx, (key, value) -> key.getInt(0), ranges[id], ranges[id])
+        obs = setup.db.scan(100_000, tx, ranges[id], ranges[id])
           .toBlocking().toIterable().iterator();
         values = obs.next().iterator();
       }
@@ -66,7 +66,7 @@ public class KeyValueForwardRangeScan {
 
     public void next() {
       if (cursor.next() && compareTo(cursor.keyBuffer(), stop) <= 0) {
-        cursor.keyInt(0);
+        new KeyValue(cursor.keyBytes(), cursor.valBytes());
       } else {
         cursor.seek(ranges[id].start);
       }

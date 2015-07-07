@@ -106,6 +106,11 @@ public class RxLMDB {
       return this;
     }
 
+    public Builder path(Path path) {
+      this.path = Optional.ofNullable(path);
+      return this;
+    }
+
     public Builder size(ByteUnit unit, long size) {
       this.size = unit.toBytes(size);
       return this;

@@ -14,8 +14,6 @@
 
 package org.deephacks.rxlmdb;
 
-import org.fusesource.lmdbjni.BufferCursor;
-
 import static org.deephacks.rxlmdb.KeyRange.KeyRangeType.*;
 
 /**

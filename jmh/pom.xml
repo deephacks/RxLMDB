@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- vi:ts=2:sw=2:expandtab: -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <parent>
     <groupId>org.deephacks.rxlmdb</groupId>
     <artifactId>rxlmdb-project</artifactId>
@@ -13,6 +14,11 @@
   <packaging>jar</packaging>
 
   <dependencies>
+    <dependency>
+      <groupId>com.squareup.wire</groupId>
+      <artifactId>wire-runtime</artifactId>
+      <version>1.8.0</version>
+    </dependency>
     <dependency>
       <groupId>org.deephacks.rxlmdb</groupId>
       <artifactId>rxlmdb</artifactId>
@@ -37,6 +43,43 @@
   </dependencies>
   <build>
     <plugins>
+      <plugin>
+        <groupId>com.squareup.wire</groupId>
+        <artifactId>wire-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-sources</goal>
+            </goals>
+            <configuration>
+              <protoFiles>
+                <param>user.proto</param>
+              </protoFiles>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${basedir}/target/generated-sources/wire</source>
+                <source>${basedir}/target/generated-sources/annotations</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>

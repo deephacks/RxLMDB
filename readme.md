@@ -7,6 +7,39 @@ RxLMDB provide a [RxJava](https://github.com/ReactiveX/RxJava) API to [LMDB](htt
 
 Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low level it make sense to raise the abstraction level to modern standards without scarifying too much (??) performance. So extending LMDB with RxJava makes it possible for asynchronous and event-based programs to process data from LMDB as sequences and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety and concurrent data structures.
 
+
+### Benchmark
+
+1 Thread
+
+```bash
+Benchmark                           Mode  Cnt        Score         Error  Units
+KeyValueForwardRangeScan.plain     thrpt   10  5855981.363 ± 1842051.132  ops/s
+KeyValueForwardRangeScan.rx        thrpt   10   934573.973 ±  310719.229  ops/s
+KeyValueForwardRangeScanBig.plain  thrpt   10   981244.738 ±  185041.091  ops/s
+KeyValueForwardRangeScanBig.rx     thrpt   10   117232.300 ±  101469.746  ops/s
+ProtoForwardRangeScan.plain        thrpt   10   719921.586 ±  350020.287  ops/s
+ProtoForwardRangeScan.rx           thrpt   10   324075.789 ±  137832.590  ops/s
+ValsForwardRangeScan.plain         thrpt   10  7967767.285 ± 2684515.075  ops/s
+ValsForwardRangeScan.rx            thrpt   10   472333.649 ±  263407.110  ops/s
+ZeroCopyForwardRangeScanBig.plain  thrpt   10  6608123.744 ± 2399760.309  ops/s
+```
+
+4 Threads
+
+```bash
+Benchmark                           Mode  Cnt         Score         Error  Units
+KeyValueForwardRangeScan.plain     thrpt   10  14510002.689 ± 1265992.980  ops/s
+KeyValueForwardRangeScan.rx        thrpt   10   1960971.506 ±  414484.221  ops/s
+KeyValueForwardRangeScanBig.plain  thrpt   10   1729805.004 ±  202788.578  ops/s
+KeyValueForwardRangeScanBig.rx     thrpt   10    390879.683 ±   38877.376  ops/s
+ProtoForwardRangeScan.plain        thrpt   10    678630.866 ±   85316.353  ops/s
+ProtoForwardRangeScan.rx           thrpt   10    617289.898 ±   50765.237  ops/s
+ValsForwardRangeScan.plain         thrpt   10  14441259.934 ± 3606977.540  ops/s
+ValsForwardRangeScan.rx            thrpt   10   1140714.164 ±  190646.443  ops/s
+ZeroCopyForwardRangeScanBig.plain  thrpt   10  10137192.818 ± 6241610.057  ops/s
+```
+
 ### Maven
 
 ```xml

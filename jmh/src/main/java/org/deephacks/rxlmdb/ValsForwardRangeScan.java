@@ -1,13 +1,10 @@
 package org.deephacks.rxlmdb;
 
-import com.squareup.wire.Wire;
-import generated.User;
 import org.fusesource.lmdbjni.BufferCursor;
 import org.fusesource.lmdbjni.DirectBuffer;
 import org.fusesource.lmdbjni.Transaction;
 import org.openjdk.jmh.annotations.*;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -21,12 +18,11 @@ import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 @Measurement(iterations = 5)
 @Warmup(iterations = 10)
 @Fork(value = 2)
-public class ProtoForwardRangeScan {
+public class ValsForwardRangeScan {
 
-  static RangedRowsSetup setup = new RangedRowsSetup(ProtoForwardRangeScan.class);
+  static RangedRowsSetup setup = new RangedRowsSetup(ValsForwardRangeScan.class);
   static AtomicInteger THREAD_ID = new AtomicInteger(0);
   static KeyRange[] ranges;
-  static Wire wire = new Wire();
 
   @State(Scope.Thread)
   public static class PlainThread {
@@ -44,7 +40,7 @@ public class ProtoForwardRangeScan {
 
     public void next() {
       if (cursor.next() && compareTo(cursor.keyBuffer(), stop) <= 0) {
-        parseFrom(cursor.valBuffer()).ssn.toByteArray();
+        parseFrom(cursor.valBuffer());
       } else {
         cursor.seek(ranges[id].start);
       }
@@ -61,7 +57,7 @@ public class ProtoForwardRangeScan {
     public RxThread() {
       tx = setup.lmdb.readTx();
       obs = setup.db.scan(tx, (key, value) -> {
-        return parseFrom(value).ssn.toByteArray();
+        return parseFrom(value).getSsn();
       }, ranges[id])
         .toBlocking().toIterable().iterator();
       values = obs.next().iterator();
@@ -74,7 +70,7 @@ public class ProtoForwardRangeScan {
         values = obs.next().iterator();
       } else {
         obs = setup.db.scan(tx, (key, value) -> {
-          return parseFrom(value).ssn.toByteArray();
+          return parseFrom(value).getSsn();
         }, ranges[id])
           .toBlocking().toIterable().iterator();
         values = obs.next().iterator();
@@ -84,7 +80,7 @@ public class ProtoForwardRangeScan {
 
   @Setup
   public void setup() {
-    ranges = setup.writeProtoRanges();
+    ranges = setup.writeValsRanges();
   }
 
   @Benchmark
@@ -97,13 +93,9 @@ public class ProtoForwardRangeScan {
     t.next();
   }
 
-  static User parseFrom(DirectBuffer value) {
-    try {
-      byte[] bytes = new byte[value.capacity()];
-      value.getBytes(0, bytes);
-      return wire.parseFrom(bytes, User.class);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+  static UserVal parseFrom(DirectBuffer value) {
+    org.deephacks.vals.DirectBuffer buffer =
+      new org.deephacks.vals.DirectBuffer(value.addressOffset(), value.capacity());
+    return UserValBuilder.parseFrom(buffer);
   }
 }

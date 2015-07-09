@@ -17,4 +17,17 @@ public class ProtoRows {
         .build();
     }
   }
+
+  public static Val_UserVal[] uservals = new Val_UserVal[10];
+
+  static {
+    for (int i = 0; i < uservals.length; i++) {
+      uservals[i] = (Val_UserVal) new UserValBuilder()
+        .withSsn(new byte[]{1, 2, 3, 4, 5, (byte) i})
+        .withFirstname(("name" + i).getBytes())
+        .withLastname(("lastname" + i).getBytes())
+        .withEmail(("email" + i + "@email.com").getBytes())
+        .withMobile(Long.valueOf(i)).build();
+    }
+  }
 }

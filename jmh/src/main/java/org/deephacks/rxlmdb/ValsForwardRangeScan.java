@@ -1,16 +1,9 @@
 package org.deephacks.rxlmdb;
 
-import org.fusesource.lmdbjni.BufferCursor;
 import org.fusesource.lmdbjni.DirectBuffer;
-import org.fusesource.lmdbjni.Transaction;
 import org.openjdk.jmh.annotations.*;
 
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -21,66 +14,24 @@ import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 public class ValsForwardRangeScan {
 
   static RangedRowsSetup setup = new RangedRowsSetup(ValsForwardRangeScan.class);
-  static AtomicInteger THREAD_ID = new AtomicInteger(0);
-  static KeyRange[] ranges;
 
   @State(Scope.Thread)
-  public static class PlainThread {
-    private final int id = THREAD_ID.getAndIncrement();
-    private BufferCursor cursor;
-    private Transaction tx;
-    private DirectBuffer stop;
-
+  public static class PlainThread extends AbstractPlainThread {
     public PlainThread() {
-      tx = setup.lmdb.env.createReadTransaction();
-      cursor = setup.db.db.bufferCursor(tx);
-      stop = new DirectBuffer(ranges[id].stop);
-      cursor.seek(ranges[id].start);
-    }
-
-    public void next() {
-      if (cursor.next() && compareTo(cursor.keyBuffer(), stop) <= 0) {
-        parseFrom(cursor.valBuffer());
-      } else {
-        cursor.seek(ranges[id].start);
-      }
+      super(setup, cursor -> parseFrom(cursor.valBuffer()).getSsn());
     }
   }
 
   @State(Scope.Thread)
-  public static class RxThread {
-    private final int id = THREAD_ID.getAndIncrement();
-    private RxTx tx;
-    private Iterator<byte[]> values;
-    private Iterator<List<byte[]>> obs;
-
+  public static class RxThread extends AbstractRxThread {
     public RxThread() {
-      tx = setup.lmdb.readTx();
-      obs = setup.db.scan(tx, (key, value) -> {
-        return parseFrom(value).getSsn();
-      }, ranges[id])
-        .toBlocking().toIterable().iterator();
-      values = obs.next().iterator();
-    }
-
-    public void next() {
-      if (values.hasNext()) {
-        values.next();
-      } else if (obs.hasNext()) {
-        values = obs.next().iterator();
-      } else {
-        obs = setup.db.scan(tx, (key, value) -> {
-          return parseFrom(value).getSsn();
-        }, ranges[id])
-          .toBlocking().toIterable().iterator();
-        values = obs.next().iterator();
-      }
+      super(setup, (key, value) -> parseFrom(value).getSsn());
     }
   }
 
   @Setup
   public void setup() {
-    ranges = setup.writeValsRanges();
+    setup.writeValsRanges();
   }
 
   @Benchmark
@@ -93,7 +44,7 @@ public class ValsForwardRangeScan {
     t.next();
   }
 
-  static UserVal parseFrom(DirectBuffer value) {
+  static final UserVal parseFrom(DirectBuffer value) {
     org.deephacks.vals.DirectBuffer buffer =
       new org.deephacks.vals.DirectBuffer(value.addressOffset(), value.capacity());
     return UserValBuilder.parseFrom(buffer);

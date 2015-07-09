@@ -2,18 +2,12 @@ package org.deephacks.rxlmdb;
 
 import com.squareup.wire.Wire;
 import generated.User;
-import org.fusesource.lmdbjni.BufferCursor;
 import org.fusesource.lmdbjni.DirectBuffer;
-import org.fusesource.lmdbjni.Transaction;
 import org.openjdk.jmh.annotations.*;
 
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -24,67 +18,25 @@ import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 public class ProtoForwardRangeScan {
 
   static RangedRowsSetup setup = new RangedRowsSetup(ProtoForwardRangeScan.class);
-  static AtomicInteger THREAD_ID = new AtomicInteger(0);
-  static KeyRange[] ranges;
   static Wire wire = new Wire();
 
   @State(Scope.Thread)
-  public static class PlainThread {
-    private final int id = THREAD_ID.getAndIncrement();
-    private BufferCursor cursor;
-    private Transaction tx;
-    private DirectBuffer stop;
-
+  public static class PlainThread extends AbstractPlainThread {
     public PlainThread() {
-      tx = setup.lmdb.env.createReadTransaction();
-      cursor = setup.db.db.bufferCursor(tx);
-      stop = new DirectBuffer(ranges[id].stop);
-      cursor.seek(ranges[id].start);
-    }
-
-    public void next() {
-      if (cursor.next() && compareTo(cursor.keyBuffer(), stop) <= 0) {
-        parseFrom(cursor.valBuffer()).ssn.toByteArray();
-      } else {
-        cursor.seek(ranges[id].start);
-      }
+      super(setup, cursor -> parseFrom(cursor.valBuffer()).ssn.toByteArray());
     }
   }
 
   @State(Scope.Thread)
-  public static class RxThread {
-    private final int id = THREAD_ID.getAndIncrement();
-    private RxTx tx;
-    private Iterator<byte[]> values;
-    private Iterator<List<byte[]>> obs;
-
+  public static class RxThread extends AbstractRxThread {
     public RxThread() {
-      tx = setup.lmdb.readTx();
-      obs = setup.db.scan(tx, (key, value) -> {
-        return parseFrom(value).ssn.toByteArray();
-      }, ranges[id])
-        .toBlocking().toIterable().iterator();
-      values = obs.next().iterator();
-    }
-
-    public void next() {
-      if (values.hasNext()) {
-        values.next();
-      } else if (obs.hasNext()) {
-        values = obs.next().iterator();
-      } else {
-        obs = setup.db.scan(tx, (key, value) -> {
-          return parseFrom(value).ssn.toByteArray();
-        }, ranges[id])
-          .toBlocking().toIterable().iterator();
-        values = obs.next().iterator();
-      }
+      super(setup, (key, value) -> parseFrom(value).ssn.toByteArray());
     }
   }
 
   @Setup
   public void setup() {
-    ranges = setup.writeProtoRanges();
+    setup.writeProtoRanges();
   }
 
   @Benchmark
@@ -97,7 +49,7 @@ public class ProtoForwardRangeScan {
     t.next();
   }
 
-  static User parseFrom(DirectBuffer value) {
+  static final User parseFrom(DirectBuffer value) {
     try {
       byte[] bytes = new byte[value.capacity()];
       value.getBytes(0, bytes);

@@ -10,34 +10,40 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 
 ### Benchmark
 
+3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz
+
 1 Thread
 
 ```bash
-Benchmark                           Mode  Cnt        Score         Error  Units
-KeyValueForwardRangeScan.plain     thrpt   10  5855981.363 ± 1842051.132  ops/s
-KeyValueForwardRangeScan.rx        thrpt   10   934573.973 ±  310719.229  ops/s
-KeyValueForwardRangeScanBig.plain  thrpt   10   981244.738 ±  185041.091  ops/s
-KeyValueForwardRangeScanBig.rx     thrpt   10   117232.300 ±  101469.746  ops/s
-ProtoForwardRangeScan.plain        thrpt   10   719921.586 ±  350020.287  ops/s
-ProtoForwardRangeScan.rx           thrpt   10   324075.789 ±  137832.590  ops/s
-ValsForwardRangeScan.plain         thrpt   10  7967767.285 ± 2684515.075  ops/s
-ValsForwardRangeScan.rx            thrpt   10   472333.649 ±  263407.110  ops/s
-ZeroCopyForwardRangeScanBig.plain  thrpt   10  6608123.744 ± 2399760.309  ops/s
+Benchmark                            Mode  Cnt        Score         Error  Units
+BigKeyValueForwardRangeScan.plain   thrpt   10  1064905.852 ±   64485.672  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10  1050130.267 ±  156649.470  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  7912850.264 ± 2395085.097  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  6187322.797 ±  831402.432  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10  4355151.954 ± 1636440.597  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  7930218.371 ± 1970968.956  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  5706000.184 ± 2309524.220  ops/s
+ProtoForwardRangeScan.plain         thrpt   10   878713.475 ±  177Intel(R) Core(TM)2 Quad CPU    Q6600  @ 2.40GHz044.683  ops/s
+ProtoForwardRangeScan.rx            thrpt   10   650100.375 ±  337147.013  ops/s
+ValsForwardRangeScan.plain          thrpt   10  4152384.935 ± 2555355.174  ops/s
+ValsForwardRangeScan.rx             thrpt   10  3679713.405 ± 1726897.978  ops/s
 ```
 
 4 Threads
 
 ```bash
-Benchmark                           Mode  Cnt         Score         Error  Units
-KeyValueForwardRangeScan.plain     thrpt   10  14510002.689 ± 1265992.980  ops/s
-KeyValueForwardRangeScan.rx        thrpt   10   1960971.506 ±  414484.221  ops/s
-KeyValueForwardRangeScanBig.plain  thrpt   10   1729805.004 ±  202788.578  ops/s
-KeyValueForwardRangeScanBig.rx     thrpt   10    390879.683 ±   38877.376  ops/s
-ProtoForwardRangeScan.plain        thrpt   10    678630.866 ±   85316.353  ops/s
-ProtoForwardRangeScan.rx           thrpt   10    617289.898 ±   50765.237  ops/s
-ValsForwardRangeScan.plain         thrpt   10  14441259.934 ± 3606977.540  ops/s
-ValsForwardRangeScan.rx            thrpt   10   1140714.164 ±  190646.443  ops/s
-ZeroCopyForwardRangeScanBig.plain  thrpt   10  10137192.818 ± 6241610.057  ops/s
+Benchmark                            Mode  Cnt         Score         Error  Units
+BigKeyValueForwardRangeScan.plain   thrpt   10   2104314.199 ±   32905.475  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10   1924742.396 ±  213965.104  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  13904379.947 ± 4509856.319  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  12336763.908 ± 1312262.879  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10   8696330.801 ± 1003123.187  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  14891716.757 ± 1433973.266  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  11236080.325 ±  619902.718  ops/s
+ProtoForwardRangeScan.plain         thrpt   10    650877.440 ±   23211.104  ops/s
+ProtoForwardRangeScan.rx            thrpt   10    612895.675 ±   20446.720  ops/s
+ValsForwardRangeScan.plain          thrpt   10   9533923.849 ±  786857.790  ops/s
+ValsForwardRangeScan.rx             thrpt   10   6021647.555 ±  614875.489  ops/s
 ```
 
 ### Maven

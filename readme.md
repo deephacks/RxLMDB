@@ -10,7 +10,7 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 
 ### Benchmark
 
-3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz
+3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz == dinosaur hardware
 
 1 Thread
 

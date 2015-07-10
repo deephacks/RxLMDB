@@ -16,17 +16,17 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 
 ```bash
 Benchmark                            Mode  Cnt        Score         Error  Units
-BigKeyValueForwardRangeScan.plain   thrpt   10  1064905.852 ±   64485.672  ops/s
-BigKeyValueForwardRangeScan.rx      thrpt   10  1050130.267 ±  156649.470  ops/s
-BigZeroCopyForwardRangeScan.plain   thrpt   10  7912850.264 ± 2395085.097  ops/s
-KeyValueForwardRangeScan.plain      thrpt   10  6187322.797 ±  831402.432  ops/s
-KeyValueForwardRangeScan.rx         thrpt   10  4355151.954 ± 1636440.597  ops/s
-KeyValueForwardSkipRangeScan.plain  thrpt   10  7930218.371 ± 1970968.956  ops/s
-KeyValueForwardSkipRangeScan.rx     thrpt   10  5706000.184 ± 2309524.220  ops/s
-ProtoForwardRangeScan.plain         thrpt   10   878713.475 ±  177Intel(R) Core(TM)2 Quad CPU    Q6600  @ 2.40GHz044.683  ops/s
-ProtoForwardRangeScan.rx            thrpt   10   650100.375 ±  337147.013  ops/s
-ValsForwardRangeScan.plain          thrpt   10  4152384.935 ± 2555355.174  ops/s
-ValsForwardRangeScan.rx             thrpt   10  3679713.405 ± 1726897.978  ops/s
+BigKeyValueForwardRangeScan.plain   thrpt   10  1198269.063 ±  111126.559  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10  1145938.446 ±   88562.664  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  8885166.898 ± 1466690.853  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  6842309.784 ±  436287.025  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10  5256023.915 ±  728375.926  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  8578892.695 ± 1049769.418  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  6389262.695 ±  478541.008  ops/s
+ProtoForwardRangeScan.plain         thrpt   10   952504.906 ±  134466.844  ops/s
+ProtoForwardRangeScan.rx            thrpt   10   862713.126 ±  157141.072  ops/s
+ValsForwardRangeScan.plain          thrpt   10  5881420.295 ± 1363464.374  ops/s
+ValsForwardRangeScan.rx             thrpt   10  4140742.830 ± 1347575.792  ops/s
 ```
 
 4 Threads

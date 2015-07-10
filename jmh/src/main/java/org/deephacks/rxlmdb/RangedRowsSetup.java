@@ -82,7 +82,7 @@ public class RangedRowsSetup {
       public void call(Subscriber<? super KeyValue> subscriber) {
         for (int j = 0; j < keyRanges.length; j++) {
           for (int i = 0; i < 100_000; i++) {
-            byte[] bytes = ProtoRows.users[i % ProtoRows.users.length].toByteArray();
+            byte[] bytes = RowValues.users[i % RowValues.users.length].toByteArray();
             DirectBuffer key = new DirectBuffer(new byte[5]);
             DirectBuffer val = new DirectBuffer(new byte[bytes.length]);
             key.putByte(0, (byte) j);
@@ -107,7 +107,7 @@ public class RangedRowsSetup {
       public void call(Subscriber<? super KeyValue> subscriber) {
         for (int j = 0; j < keyRanges.length; j++) {
           for (int i = 0; i < 100_000; i++) {
-            byte[] bytes = ProtoRows.uservals[i % ProtoRows.uservals.length].toByteArray();
+            byte[] bytes = RowValues.uservals[i % RowValues.uservals.length].toByteArray();
             DirectBuffer key = new DirectBuffer(new byte[5]);
             DirectBuffer val = new DirectBuffer(new byte[bytes.length]);
             key.putByte(0, (byte) j);

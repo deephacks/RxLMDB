@@ -2,6 +2,7 @@ package org.deephacks.rxlmdb;
 
 import org.openjdk.jmh.annotations.*;
 
+import java.nio.ByteOrder;
 import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.Throughput)
@@ -10,21 +11,29 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 5)
 @Warmup(iterations = 10)
 @Fork(value = 2)
-public class KeyValueForwardRangeScan {
-
-  static RangedRowsSetup setup = new RangedRowsSetup(KeyValueForwardRangeScan.class);
-
+public class KeyValueForwardSkipRangeScan {
+  static RangedRowsSetup setup = new RangedRowsSetup(KeyValueForwardSkipRangeScan.class);
+  static KeyValue kv = new KeyValue(new byte[0], new byte[0]);
   @State(Scope.Thread)
   public static class RxThread extends AbstractRxThread {
     public RxThread() {
-      super(setup, new Scan.ScanDefault());
+      super(setup, (key, value) -> {
+        if ((key.getInt(1, ByteOrder.BIG_ENDIAN) & 5) == 0) {
+          return new KeyValue(key, value);
+        }
+        return kv;
+      });
     }
   }
 
   @State(Scope.Thread)
   public static class PlainThread extends AbstractPlainThread {
     public PlainThread() {
-      super(setup, cursor -> new KeyValue(cursor.keyBytes(), cursor.valBytes()));
+      super(setup, cursor -> {
+        if ((cursor.keyBuffer().getInt(1, ByteOrder.BIG_ENDIAN) & 5) == 0) {
+          new KeyValue(cursor.keyBytes(), cursor.valBytes());
+        }
+      });
     }
   }
 

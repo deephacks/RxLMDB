@@ -13,6 +13,7 @@
  */
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.DirectBuffer;
 import org.fusesource.lmdbjni.Entry;
 
 import java.util.Arrays;
@@ -29,6 +30,15 @@ public class KeyValue {
   public KeyValue(byte[] key, byte[] value) {
     this.key = key;
     this.value = value;
+  }
+
+  public KeyValue(DirectBuffer key, DirectBuffer value) {
+    byte[] k = new byte[key.capacity()];
+    key.getBytes(0, k);
+    byte[] v = new byte[value.capacity()];
+    value.getBytes(0, v);
+    this.key = k;
+    this.value = v;
   }
 
   @Override

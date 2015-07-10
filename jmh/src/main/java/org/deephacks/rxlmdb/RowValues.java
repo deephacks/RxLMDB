@@ -3,7 +3,7 @@ package org.deephacks.rxlmdb;
 import generated.User;
 import okio.ByteString;
 
-public class ProtoRows {
+public class RowValues {
   public static User[] users = new User[10];
 
   static {

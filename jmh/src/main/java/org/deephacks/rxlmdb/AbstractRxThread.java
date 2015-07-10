@@ -29,7 +29,7 @@ public abstract class AbstractRxThread<T> {
     } else if (obs.hasNext()) {
       values = obs.next().iterator();
     } else {
-      obs = setup.db.scan(100_000, tx, scan, setup.keyRanges[id])
+      obs = setup.db.scan(tx, scan, setup.keyRanges[id])
         .toBlocking().toIterable().iterator();
       values = obs.next().iterator();
     }

@@ -34,7 +34,6 @@ public class Scanners {
       .map(range -> createObservable(getScanner(db, tx, scan, range), tx)
         .buffer(buffer).subscribeOn(scheduler).onBackpressureBuffer())
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
-
   }
 
   private static final <T> Scanner<T> getScanner(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
@@ -255,16 +254,19 @@ public class Scanners {
       BufferCursor cursor = db.bufferCursor(tx.tx);
       DirectBuffer stop = new DirectBuffer(range.stop);
       boolean hasNext = cursor.seek(range.start);
-      while (hasNext) {
-        if (subscriber.isUnsubscribed()) {
-          return;
-        } else if (compareTo(cursor.keyBuffer(), stop) <= 0) {
-          T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
-          if (result != null) {
-            subscriber.onNext(result);
-          }
+      if (!hasNext) {
+        return;
+      } else {
+        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        if (result != null) {
+          subscriber.onNext(result);
         }
-        hasNext = cursor.next();
+      }
+      while (!subscriber.isUnsubscribed() && cursor.next() && compareTo(cursor.keyBuffer(), stop) <= 0) {
+        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        if (result != null) {
+          subscriber.onNext(result);
+        }
       }
     }
   }

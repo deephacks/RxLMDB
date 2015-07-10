@@ -14,6 +14,8 @@
 
 package org.deephacks.rxlmdb;
 
+import java.util.Arrays;
+
 import static org.deephacks.rxlmdb.KeyRange.KeyRangeType.*;
 
 /**
@@ -64,5 +66,14 @@ public class KeyRange {
 
   enum KeyRangeType {
     FORWARD, FORWARD_START, FORWARD_STOP, FOWARD_RANGE, BACKWARD, BACKWARD_START, BACKWARD_STOP, BACKWARD_RANGE
+  }
+
+  @Override
+  public String toString() {
+    return "KeyRange{" +
+      "start=" + Arrays.toString(start) +
+      ", stop=" + Arrays.toString(stop) +
+      ", type=" + type +
+      '}';
   }
 }

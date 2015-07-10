@@ -1,6 +1,5 @@
 package org.deephacks.rxlmdb;
 
-import org.fusesource.lmdbjni.BufferCursor;
 import org.openjdk.jmh.annotations.*;
 
 import java.util.concurrent.TimeUnit;
@@ -11,9 +10,9 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 5)
 @Warmup(iterations = 10)
 @Fork(value = 2)
-public class KeyValueForwardRangeScanBig {
+public class BigKeyValueForwardRangeScan {
 
-  static RangedRowsSetup setup = new RangedRowsSetup(KeyValueForwardRangeScanBig.class);
+  static RangedRowsSetup setup = new RangedRowsSetup(BigKeyValueForwardRangeScan.class);
 
   @State(Scope.Thread)
   public static class RxThread extends AbstractRxThread {

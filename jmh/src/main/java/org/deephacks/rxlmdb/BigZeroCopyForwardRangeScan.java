@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 @Measurement(iterations = 5)
 @Warmup(iterations = 10)
 @Fork(value = 2)
-public class ZeroCopyForwardRangeScanBig {
-  static RangedRowsSetup setup = new RangedRowsSetup(KeyValueForwardRangeScanBig.class);
+public class BigZeroCopyForwardRangeScan {
+  static RangedRowsSetup setup = new RangedRowsSetup(BigKeyValueForwardRangeScan.class);
 
   @State(Scope.Thread)
   public static class PlainThread extends AbstractPlainThread {

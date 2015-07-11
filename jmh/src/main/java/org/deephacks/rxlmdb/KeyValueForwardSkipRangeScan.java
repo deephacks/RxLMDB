@@ -39,7 +39,7 @@ public class KeyValueForwardSkipRangeScan {
 
   @Setup
   public void setup() {
-    setup.writeRanges();
+    setup.writeSmallKeyValue();
   }
 
   @Benchmark

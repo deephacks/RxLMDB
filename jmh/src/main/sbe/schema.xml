@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/simple/1.0"
+                   package="generated.sbe"
+                   id="1"
+                   version="0"
+                   semanticVersion="1.0"
+                   description="Directory Message Format"
+                   byteOrder="littleEndian">
+  <types>
+    <composite name="messageHeader" description="Message identifiers and length of message root">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId" primitiveType="uint16"/>
+      <type name="schemaId" primitiveType="uint16"/>
+      <type name="version" primitiveType="uint16"/>
+    </composite>
+    <composite name="varDataEncoding">
+      <type name="length" primitiveType="uint8"/>
+      <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8"/>
+    </composite>
+  </types>
+
+  <sbe:message name="User" id="1" >
+    <field name="mobile" id="1" type="uint64" />
+    <data name="ssn" id="2" type="varDataEncoding" />
+    <data name="firstname" id="3" type="varDataEncoding" />
+    <data name="lastname" id="4" type="varDataEncoding" />
+    <data name="email" id="5" type="varDataEncoding" />
+  </sbe:message>
+
+</sbe:messageSchema>

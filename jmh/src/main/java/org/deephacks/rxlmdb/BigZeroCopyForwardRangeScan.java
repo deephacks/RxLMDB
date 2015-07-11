@@ -22,7 +22,7 @@ public class BigZeroCopyForwardRangeScan {
 
   @Setup
   public void setup() {
-    setup.writeRangesBig();
+    setup.writeBigKeyValue();
   }
 
   @Benchmark

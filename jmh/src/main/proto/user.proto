@@ -1,6 +1,6 @@
-package generated;
+package generated.proto;
 
-option java_package = "generated";
+option java_package = "generated.proto";
 option java_outer_classname = "RxLMDBProtos";
 
 message Address {

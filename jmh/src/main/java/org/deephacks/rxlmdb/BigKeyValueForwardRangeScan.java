@@ -30,7 +30,7 @@ public class BigKeyValueForwardRangeScan {
 
   @Setup
   public void setup() {
-    setup.writeRangesBig();
+    setup.writeBigKeyValue();
   }
 
   @Benchmark

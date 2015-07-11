@@ -30,7 +30,7 @@ public class KeyValueForwardRangeScan {
 
   @Setup
   public void setup() {
-    setup.writeRanges();
+    setup.writeSmallKeyValue();
   }
 
   @Benchmark

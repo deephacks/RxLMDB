@@ -15,18 +15,20 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 1 Thread
 
 ```bash
-Benchmark                            Mode  Cnt        Score         Error  Units
-BigKeyValueForwardRangeScan.plain   thrpt   10  1198269.063 ±  111126.559  ops/s
-BigKeyValueForwardRangeScan.rx      thrpt   10  1145938.446 ±   88562.664  ops/s
-BigZeroCopyForwardRangeScan.plain   thrpt   10  8885166.898 ± 1466690.853  ops/s
-KeyValueForwardRangeScan.plain      thrpt   10  6842309.784 ±  436287.025  ops/s
-KeyValueForwardRangeScan.rx         thrpt   10  5256023.915 ±  728375.926  ops/s
-KeyValueForwardSkipRangeScan.plain  thrpt   10  8578892.695 ± 1049769.418  ops/s
-KeyValueForwardSkipRangeScan.rx     thrpt   10  6389262.695 ±  478541.008  ops/s
-ProtoForwardRangeScan.plain         thrpt   10   952504.906 ±  134466.844  ops/s
-ProtoForwardRangeScan.rx            thrpt   10   862713.126 ±  157141.072  ops/s
-ValsForwardRangeScan.plain          thrpt   10  5881420.295 ± 1363464.374  ops/s
-ValsForwardRangeScan.rx             thrpt   10  4140742.830 ± 1347575.792  ops/s
+Benchmark                            Mode  Cnt         Score          Error  Units
+BigKeyValueForwardRangeScan.plain   thrpt   10   2228290.779 ±    97740.164  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10   2007602.631 ±   138191.338  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  24039407.723 ± 10324087.658  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  15013271.530 ±  3823436.116  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10  13435477.294 ±  1259562.380  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  19197554.155 ±  2595375.027  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  13054462.708 ±  2487268.135  ops/s
+ProtoForwardRangeScan.plain         thrpt   10    709373.171 ±    21087.972  ops/s
+ProtoForwardRangeScan.rx            thrpt   10    680306.706 ±    41235.523  ops/s
+SbeForwardRangeScan.plain           thrpt   10   9432879.769 ±  1401699.377  ops/s
+SbeForwardRangeScan.rx              thrpt   10   6393115.548 ±  1382314.020  ops/s
+ValsForwardRangeScan.plain          thrpt   10   8433298.977 ±  2416735.095  ops/s
+ValsForwardRangeScan.rx             thrpt   10   5526397.270 ±  1477398.306  ops/s
 ```
 
 4 Threads

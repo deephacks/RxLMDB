@@ -19,6 +19,8 @@ import rx.exceptions.OnErrorFailedException;
 import rx.functions.Func1;
 import rx.observables.BlockingObservable;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,30 +48,14 @@ public class RxDB {
     values.subscribe(putSubscriber);
   }
 
-  public Observable<byte[]> get(byte[] key) {
-    return get(key, lmdb.internalReadTx());
+  public Observable<byte[]> get(Observable<byte[]> keys) {
+    return get(lmdb.internalReadTx(), keys);
   }
 
-  public Observable<byte[]> get(byte[] key, RxTx tx) {
-    return Observable.create(subscriber -> {
-        try {
-          byte[] value = db.get(tx.tx, key);
-          if (value != null) {
-            subscriber.onNext(value);
-          }
-          subscriber.onCompleted();
-        } catch (Throwable t) {
-          if (!tx.isUserManaged) {
-            tx.abort();
-          }
-          subscriber.onError(t);
-        } finally {
-          if (!tx.isUserManaged) {
-            tx.abort();
-          }
-        }
-      }
-    );
+  public Observable<byte[]> get(RxTx tx, Observable<byte[]> keys) {
+    GetSubscriber subscriber = new GetSubscriber(this, tx);
+    keys.subscribe(subscriber);
+    return subscriber.obs;
   }
 
   public void delete() {
@@ -199,6 +185,58 @@ public class RxDB {
     public void onNext(KeyValue kv) {
       try {
         db.put(tx.tx, kv.key, kv.value);
+      } catch (Throwable e) {
+        throw new OnErrorFailedException(e);
+      }
+    }
+  }
+
+  private static class GetSubscriber extends Subscriber<byte[]> {
+    final RxTx tx;
+    final Database db;
+    final LinkedList<byte[]> values = new LinkedList<>();
+    final Observable<byte[]> obs;
+
+    private GetSubscriber(RxDB db, RxTx tx) {
+      this.tx = tx;
+      this.db = db.db;
+      this.obs = Observable.from(new Iterable<byte[]>() {
+        @Override
+        public Iterator<byte[]> iterator() {
+          return new Iterator<byte[]>() {
+            @Override
+            public boolean hasNext() {
+              return !values.isEmpty();
+            }
+
+            @Override
+            public byte[] next() {
+              return values.pollFirst();
+            }
+          };
+        }
+      });
+    }
+
+    @Override
+    public void onCompleted() {
+      if (!tx.isUserManaged) {
+        tx.commit();
+      }
+    }
+
+    @Override
+    public void onError(Throwable e) {
+      tx.abort();
+    }
+
+    @Override
+    public void onNext(byte[] key) {
+      try {
+        byte[] bytes = db.get(tx.tx, key);
+        if (bytes != null) {
+          values.add(db.get(tx.tx, key));
+        }
       } catch (Throwable e) {
         throw new OnErrorFailedException(e);
       }

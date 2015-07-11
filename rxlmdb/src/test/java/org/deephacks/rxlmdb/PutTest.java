@@ -4,24 +4,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
-import rx.exceptions.Exceptions;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.deephacks.rxlmdb.Fixture.*;
-
 import static com.google.common.truth.Truth.assertThat;
+import static org.deephacks.rxlmdb.Fixture.*;
+import static org.deephacks.rxlmdb.Fixture.__3;
+import static org.deephacks.rxlmdb.Fixture.values;
 import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 import static org.junit.Assert.assertTrue;
 
-public class TransactionTest {
+public class PutTest {
   RxDB db;
   RxLMDB lmdb;
 
@@ -38,7 +34,7 @@ public class TransactionTest {
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testAbort() {
+  public void testPutAbort() {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9));
     tx.abort();
@@ -46,7 +42,7 @@ public class TransactionTest {
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testAbortWithResources() {
+  public void testPutAbortWithResources() {
     try (RxTx tx = lmdb.writeTx()) {
       db.put(tx, Observable.from(_1_to_9));
     }
@@ -54,19 +50,7 @@ public class TransactionTest {
   }
 
   @Test
-  public void testAbortDelete() {
-    RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(_1_to_9));
-    tx.commit();
-    tx = lmdb.writeTx();
-    db.delete(tx, Observable.from(keys));
-    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
-    tx.abort();
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
-  }
-
-  @Test
-  public void testCommit() {
+  public void testPutCommit() {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9));
     tx.commit();
@@ -126,81 +110,7 @@ public class TransactionTest {
   }
 
   @Test
-  public void testCommitDelete() {
-    RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(_1_to_9));
-    tx.commit();
-    tx = lmdb.writeTx();
-    db.delete(tx, Observable.from(keys));
-    assertThat(toStreamBlocking(db.scan(tx, KeyRange.forward())).count()).isEqualTo(0L);
-    tx.commit();
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
-  }
-
-  @Test
-  public void testDeleteAll() {
-    db.put(Observable.from(_1_to_9));
-    db.delete();
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(0L);
-  }
-
-  @Test
-  public void testDeleteAllAbort() {
-    db.put(Observable.from(_1_to_9));
-    RxTx tx = lmdb.writeTx();
-    db.delete(tx);
-    tx.abort();
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
-  }
-
-  @Test
-  public void testDeleteKeys() throws InterruptedException {
-    db.put(Observable.from(_1_to_9));
-    db.delete(Observable.from(Arrays.asList(__2, __3)));
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(7L);
-  }
-
-  @Test
-  public void testDeleteKeysAbort() {
-    db.put(Observable.from(_1_to_9));
-    RxTx tx = lmdb.writeTx();
-    db.delete(tx, Observable.from(Arrays.asList(__2, __3)));
-    tx.abort();
-    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(9L);
-  }
-
-
-  @Test
-  public void testDeleteRange() throws InterruptedException {
-    RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(_1_to_9));
-    tx.commit();
-    tx = lmdb.writeTx();
-    Observable<byte[]> keys = db.scan(tx, KeyRange.atMost(new byte[]{5, 5}))
-      .flatMap(Observable::from)
-      .map(kv -> kv.key);
-    db.delete(tx, keys);
-    tx.commit();
-    LinkedList<KeyValue> expected = Fixture.range(__6, __9);
-    toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    assertTrue(expected.isEmpty());
-  }
-
-  @Test
-  public void testWriteAndCommitTxOnSeparateThreads() throws InterruptedException {
-    RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(_1_to_9).subscribeOn(Schedulers.io()));
-    Thread.sleep(100);
-    tx.commit();
-    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
-    toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
-    assertTrue(expected.isEmpty());
-  }
-
-  @Test
-  public void testCreateAndCommitTxOnSeparateThreads() throws InterruptedException {
+  public void testPutAndCommitTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
     Observable<KeyValue> obs = Observable.from(_1_to_9)
       .subscribeOn(Schedulers.io());
@@ -214,7 +124,7 @@ public class TransactionTest {
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testCreateAndRollbackTxOnSeparateThreads() throws InterruptedException {
+  public void testPutAndRollbackTxOnSeparateThreads() throws InterruptedException {
     RxTx tx = lmdb.writeTx();
     Observable<KeyValue> obs = Observable.from(_1_to_9)
       .subscribeOn(Schedulers.io());
@@ -226,7 +136,7 @@ public class TransactionTest {
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void testScanWithinTxThenAbort() {
+  public void testPutScanWithinTxThenAbort() {
     RxTx tx = lmdb.writeTx();
     db.put(tx, Observable.from(_1_to_9));
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);

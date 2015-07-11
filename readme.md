@@ -109,7 +109,7 @@ ValsForwardRangeScan.rx             thrpt   10   5812951.172 ±  573829.010  ops
   db.put(Observable.from(kvs));
   
   // get
-  Observable<KeyValue> o = db.get(new byte[] { 1 });
+  Observable<KeyValue> o = db.get(Observable.just(new byte[] { 1 }));
 
   // scan forward
   Observable<List<KeyValue<> o = db.scan();

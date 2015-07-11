@@ -16,34 +16,38 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 
 ```bash
 Benchmark                            Mode  Cnt        Score         Error  Units
-BigKeyValueForwardRangeScan.plain   thrpt   10  1198269.063 ±  111126.559  ops/s
-BigKeyValueForwardRangeScan.rx      thrpt   10  1145938.446 ±   88562.664  ops/s
-BigZeroCopyForwardRangeScan.plain   thrpt   10  8885166.898 ± 1466690.853  ops/s
-KeyValueForwardRangeScan.plain      thrpt   10  6842309.784 ±  436287.025  ops/s
-KeyValueForwardRangeScan.rx         thrpt   10  5256023.915 ±  728375.926  ops/s
-KeyValueForwardSkipRangeScan.plain  thrpt   10  8578892.695 ± 1049769.418  ops/s
-KeyValueForwardSkipRangeScan.rx     thrpt   10  6389262.695 ±  478541.008  ops/s
-ProtoForwardRangeScan.plain         thrpt   10   952504.906 ±  134466.844  ops/s
-ProtoForwardRangeScan.rx            thrpt   10   862713.126 ±  157141.072  ops/s
-ValsForwardRangeScan.plain          thrpt   10  5881420.295 ± 1363464.374  ops/s
-ValsForwardRangeScan.rx             thrpt   10  4140742.830 ± 1347575.792  ops/s
+BigKeyValueForwardRangeScan.plain   thrpt   10  1178232.202 ±   81015.649  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10  1162131.060 ±  112057.128  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  9299859.225 ± 2529503.812  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  6674117.744 ± 1067856.172  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10  5323064.014 ± 1061179.864  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  8789483.189 ±  768294.614  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  6453558.501 ±  903252.457  ops/s
+ProtoForwardRangeScan.plain         thrpt   10   977556.340 ±  263740.090  ops/s
+ProtoForwardRangeScan.rx            thrpt   10   842469.488 ±  170672.957  ops/s
+SbeForwardRangeScan.plain           thrpt   10  5924733.706 ± 1985892.580  ops/s
+SbeForwardRangeScan.rx              thrpt   10  4570195.110 ±  500547.365  ops/s
+ValsForwardRangeScan.plain          thrpt   10  5365088.191 ± 2345685.548  ops/s
+ValsForwardRangeScan.rx             thrpt   10  3627839.672 ± 1284540.222  ops/s
 ```
 
 4 Threads
 
 ```bash
 Benchmark                            Mode  Cnt         Score         Error  Units
-BigKeyValueForwardRangeScan.plain   thrpt   10   2104314.199 ±   32905.475  ops/s
-BigKeyValueForwardRangeScan.rx      thrpt   10   1924742.396 ±  213965.104  ops/s
-BigZeroCopyForwardRangeScan.plain   thrpt   10  13904379.947 ± 4509856.319  ops/s
-KeyValueForwardRangeScan.plain      thrpt   10  12336763.908 ± 1312262.879  ops/s
-KeyValueForwardRangeScan.rx         thrpt   10   8696330.801 ± 1003123.187  ops/s
-KeyValueForwardSkipRangeScan.plain  thrpt   10  14891716.757 ± 1433973.266  ops/s
-KeyValueForwardSkipRangeScan.rx     thrpt   10  11236080.325 ±  619902.718  ops/s
-ProtoForwardRangeScan.plain         thrpt   10    650877.440 ±   23211.104  ops/s
-ProtoForwardRangeScan.rx            thrpt   10    612895.675 ±   20446.720  ops/s
-ValsForwardRangeScan.plain          thrpt   10   9533923.849 ±  786857.790  ops/s
-ValsForwardRangeScan.rx             thrpt   10   6021647.555 ±  614875.489  ops/s
+BigKeyValueForwardRangeScan.plain   thrpt   10   1978242.823 ±  174190.990  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10   1699797.802 ±  147330.769  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  18631395.953 ± 7500005.892  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  13384190.029 ± 2015610.137  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10   8646695.332 ± 2026413.388  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  14736089.587 ± 2432557.384  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  12330989.000 ±  559894.869  ops/s
+ProtoForwardRangeScan.plain         thrpt   10    651203.480 ±   28715.405  ops/s
+ProtoForwardRangeScan.rx            thrpt   10    617451.737 ±   20311.644  ops/s
+SbeForwardRangeScan.plain           thrpt   10   8991860.431 ±  465302.254  ops/s
+SbeForwardRangeScan.rx              thrpt   10   4755629.167 ± 1821428.568  ops/s
+ValsForwardRangeScan.plain          thrpt   10   8546665.500 ± 1269468.808  ops/s
+ValsForwardRangeScan.rx             thrpt   10   5812951.172 ±  573829.010  ops/s
 ```
 
 ### Maven

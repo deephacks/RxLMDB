@@ -16,6 +16,7 @@ package org.deephacks.rxlmdb;
 import org.fusesource.lmdbjni.*;
 import rx.*;
 import rx.exceptions.OnErrorFailedException;
+import rx.functions.Func1;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,11 +50,11 @@ public class RxDB {
   }
 
   public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
-    return keys.map(key -> {
+    return keys.flatMap(key -> {
       try {
-        return new KeyValue(key, db.get(tx.tx, key));
+        return Observable.just(new KeyValue(key, db.get(tx.tx, key)));
       } catch (Throwable e) {
-        return new KeyValue(key, null);
+        return Observable.just(new KeyValue(key, null));
       }
     }).doOnCompleted(() -> {
       if (!tx.isUserManaged) {

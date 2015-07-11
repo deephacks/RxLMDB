@@ -10,6 +10,10 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 
 ### Benchmark
 
+* If you want to run fast, use zero-copy.
+* If you want to run faster, also use parallel range scans.
+* If you want to run fastest, do not use RxLMDB, but plain LMDB.
+
 3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz == dinosaur hardware
 
 1 Thread

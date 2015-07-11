@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,11 +48,11 @@ public class RxDB {
     values.subscribe(putSubscriber);
   }
 
-  public Observable<byte[]> get(Observable<byte[]> keys) {
+  public Observable<KeyValue> get(Observable<byte[]> keys) {
     return get(lmdb.internalReadTx(), keys);
   }
 
-  public Observable<byte[]> get(RxTx tx, Observable<byte[]> keys) {
+  public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
     GetSubscriber subscriber = new GetSubscriber(this, tx);
     keys.subscribe(subscriber);
     return subscriber.obs;
@@ -194,23 +194,23 @@ public class RxDB {
   private static class GetSubscriber extends Subscriber<byte[]> {
     final RxTx tx;
     final Database db;
-    final LinkedList<byte[]> values = new LinkedList<>();
-    final Observable<byte[]> obs;
+    final LinkedList<KeyValue> values = new LinkedList<>();
+    final Observable<KeyValue> obs;
 
     private GetSubscriber(RxDB db, RxTx tx) {
       this.tx = tx;
       this.db = db.db;
-      this.obs = Observable.from(new Iterable<byte[]>() {
+      this.obs = Observable.from(new Iterable<KeyValue>() {
         @Override
-        public Iterator<byte[]> iterator() {
-          return new Iterator<byte[]>() {
+        public Iterator<KeyValue> iterator() {
+          return new Iterator<KeyValue>() {
             @Override
             public boolean hasNext() {
               return !values.isEmpty();
             }
 
             @Override
-            public byte[] next() {
+            public KeyValue next() {
               return values.pollFirst();
             }
           };
@@ -233,10 +233,7 @@ public class RxDB {
     @Override
     public void onNext(byte[] key) {
       try {
-        byte[] bytes = db.get(tx.tx, key);
-        if (bytes != null) {
-          values.add(db.get(tx.tx, key));
-        }
+        values.add(new KeyValue(key, db.get(tx.tx, key)));
       } catch (Throwable e) {
         throw new OnErrorFailedException(e);
       }

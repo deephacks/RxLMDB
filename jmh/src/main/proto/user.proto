@@ -17,4 +17,5 @@ message User {
   optional bytes lastname = 3;
   optional bytes email = 4;
   optional uint64 mobile = 5;
+  optional Address address = 6;
 }

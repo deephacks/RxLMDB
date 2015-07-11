@@ -11,4 +11,5 @@ public interface UserVal extends Encodable {
   @Id(3) byte[] getLastname();
   @Id(4) byte[] getEmail();
   @Id(5) long getMobile();
+  @Id(6) AddressVal getAddress();
 }

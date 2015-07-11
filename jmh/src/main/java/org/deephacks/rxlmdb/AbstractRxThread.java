@@ -12,12 +12,12 @@ public abstract class AbstractRxThread<T> {
   public RxTx tx;
   public Iterator<T> values;
   public Iterator<List<T>> obs;
-  public Scan<T> scan;
+  public ZcMap<T> mapper;
   private RangedRowsSetup setup;
 
-  public AbstractRxThread(RangedRowsSetup setup, Scan<T> scan) {
+  public AbstractRxThread(RangedRowsSetup setup, ZcMap<T> mapper) {
     this.tx = setup.lmdb.readTx();
-    this.scan = scan;
+    this.mapper = mapper;
     this.setup = setup;
     this.values = Collections.emptyIterator();
     this.obs = Collections.emptyIterator();
@@ -29,7 +29,7 @@ public abstract class AbstractRxThread<T> {
     } else if (obs.hasNext()) {
       values = obs.next().iterator();
     } else {
-      obs = setup.db.scan(tx, scan, setup.keyRanges[id])
+      obs = setup.db.scan(tx, mapper, setup.keyRanges[id])
         .toBlocking().toIterable().iterator();
       values = obs.next().iterator();
     }

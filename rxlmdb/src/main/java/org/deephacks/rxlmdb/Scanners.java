@@ -16,7 +16,7 @@ public class Scanners {
 
   public static final <T> Observable<List<T>> scan(Database db,
                                                    RxTx tx,
-                                                   Scan<T> scan,
+                                                   ZcMap<T> scan,
                                                    Scheduler scheduler,
                                                    int buffer,
                                                    KeyRange... ranges) {
@@ -36,7 +36,7 @@ public class Scanners {
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }
 
-  private static final <T> Scanner<T> getScanner(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+  private static final <T> Scanner<T> getScanner(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
     switch (range.type) {
       case FORWARD:
         return new ForwardScan<>(db, tx, scan, range);
@@ -84,11 +84,11 @@ public class Scanners {
   static abstract class Scanner<T> {
     final Database db;
     final RxTx tx;
-    final Scan<T> scan;
+    final ZcMap<T> scan;
     final KeyRange range;
     BufferCursor cursor;
 
-    protected Scanner(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected Scanner(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       this.db = db;
       this.tx = tx;
       this.scan = scan;
@@ -100,7 +100,7 @@ public class Scanners {
 
   static class ForwardScan<T> extends Scanner<T> {
 
-    protected ForwardScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected ForwardScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -123,7 +123,7 @@ public class Scanners {
 
   static class BackwardScan<T> extends Scanner<T> {
 
-    protected BackwardScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected BackwardScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -146,7 +146,7 @@ public class Scanners {
 
   static class ForwardStopScan<T> extends Scanner<T> {
 
-    protected ForwardStopScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected ForwardStopScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -172,7 +172,7 @@ public class Scanners {
 
   static class BackwardStopScan<T> extends Scanner<T> {
 
-    protected BackwardStopScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected BackwardStopScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -198,7 +198,7 @@ public class Scanners {
 
   static class ForwardStartScan<T> extends Scanner<T> {
 
-    protected ForwardStartScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected ForwardStartScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -221,7 +221,7 @@ public class Scanners {
 
   static class BackwardStartScan<T> extends Scanner<T> {
 
-    protected BackwardStartScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected BackwardStartScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -245,7 +245,7 @@ public class Scanners {
 
   static class ForwardRangeScan<T> extends Scanner<T> {
 
-    protected ForwardRangeScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected ForwardRangeScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 
@@ -273,7 +273,7 @@ public class Scanners {
 
   static class BackwardRangeScan<T> extends Scanner<T> {
 
-    protected BackwardRangeScan(Database db, RxTx tx, Scan<T> scan, KeyRange range) {
+    protected BackwardRangeScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
       super(db, tx, scan, range);
     }
 

@@ -16,18 +16,12 @@ package org.deephacks.rxlmdb;
 import org.fusesource.lmdbjni.*;
 import rx.*;
 import rx.exceptions.OnErrorFailedException;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.observables.BlockingObservable;
 
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
 public class RxDB {
-  final Scan.ScanDefault scanDefault = new Scan.ScanDefault();
+  final ZcMap.KeyValueMap scanDefault = new ZcMap.KeyValueMap();
   final RxLMDB lmdb;
   final Database db;
   final String name;
@@ -90,11 +84,11 @@ public class RxDB {
     keys.subscribe(new DeleteSubscriber(this, tx));
   }
 
-  public <T> Observable<List<T>> scan(Scan<T> scan) {
+  public <T> Observable<List<T>> scan(ZcMap<T> scan) {
     return scan(defaultBuffer, lmdb.internalReadTx(), scan);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, Scan<T> scan) {
+  public <T> Observable<List<T>> scan(int buffer, ZcMap<T> scan) {
     return scan(buffer, lmdb.internalReadTx(), scan);
   }
 
@@ -114,19 +108,19 @@ public class RxDB {
     return scan(buffer, tx, scanDefault, ranges);
   }
 
-  public <T> Observable<List<T>> scan(Scan<T> scan, KeyRange... ranges) {
+  public <T> Observable<List<T>> scan(ZcMap<T> scan, KeyRange... ranges) {
     return scan(defaultBuffer, lmdb.internalReadTx(), scan, ranges);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, Scan<T> scan, KeyRange... ranges) {
+  public <T> Observable<List<T>> scan(int buffer, ZcMap<T> scan, KeyRange... ranges) {
     return scan(buffer, lmdb.internalReadTx(), scan, ranges);
   }
 
-  public <T> Observable<List<T>> scan(RxTx tx, Scan<T> scan, KeyRange... ranges) {
+  public <T> Observable<List<T>> scan(RxTx tx, ZcMap<T> scan, KeyRange... ranges) {
     return scan(defaultBuffer, tx, scan, ranges);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, RxTx tx, Scan<T> scan, KeyRange... ranges) {
+  public <T> Observable<List<T>> scan(int buffer, RxTx tx, ZcMap<T> scan, KeyRange... ranges) {
     return Scanners.scan(db, tx, scan, scheduler, buffer, ranges);
   }
 

@@ -17,7 +17,7 @@ public class KeyValueForwardRangeScan {
   @State(Scope.Thread)
   public static class RxThread extends AbstractRxThread {
     public RxThread() {
-      super(setup, new Scan.ScanDefault());
+      super(setup, new ZcMap.KeyValueMap());
     }
   }
 

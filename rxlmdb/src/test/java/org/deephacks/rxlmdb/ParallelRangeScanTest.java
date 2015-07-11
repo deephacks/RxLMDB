@@ -52,7 +52,7 @@ public class ParallelRangeScanTest {
 
   @Test
   public void testParallelScanMapper() {
-    Scan<Byte> scan = (key, value) -> key.getByte(0);
+    ZcMap<Byte> scan = (key, value) -> key.getByte(0);
     LinkedList<KeyValue> expected = Fixture.range(__2, __5);
     RxTx tx = db.lmdb.readTx();
     Observable<List<Byte>> result = db.scan(tx, scan, KeyRange.range(__2, __3), KeyRange.range(__4, __5));

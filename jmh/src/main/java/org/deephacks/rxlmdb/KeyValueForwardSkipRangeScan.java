@@ -12,8 +12,10 @@ import java.util.concurrent.TimeUnit;
 @Warmup(iterations = 10)
 @Fork(value = 2)
 public class KeyValueForwardSkipRangeScan {
+
   static RangedRowsSetup setup = new RangedRowsSetup(KeyValueForwardSkipRangeScan.class);
   static KeyValue kv = new KeyValue(new byte[0], new byte[0]);
+
   @State(Scope.Thread)
   public static class RxThread extends AbstractRxThread {
     public RxThread() {

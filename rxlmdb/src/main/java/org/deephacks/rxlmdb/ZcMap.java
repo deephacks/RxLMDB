@@ -2,14 +2,14 @@ package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.DirectBuffer;
 
-public interface Scan<T> {
+public interface ZcMap<T> {
   /**
    * Provide a zero copy key/value pair applied to a given result.
    * @return null will be skipped from result
    */
   T map(DirectBuffer key, DirectBuffer value);
 
-  class ScanDefault implements Scan<KeyValue> {
+  class KeyValueMap implements ZcMap<KeyValue> {
 
     @Override
     public KeyValue map(DirectBuffer key, DirectBuffer value) {

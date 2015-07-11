@@ -36,6 +36,21 @@ public class GetTest {
   }
 
   @Test
+  public void testGetNull() {
+    List<KeyValue> result = RxObservables.toSingleStreamBlocking(
+      db.get(Observable.from(new byte[][]{__1, null, __2}))
+    ).collect(Collectors.toList());
+    assertThat(result).hasSize(3);
+    assertThat(result.get(0).key).isEqualTo(__1);
+    assertThat(result.get(0).value).isEqualTo(__1);
+    assertThat(result.get(1).key).isEqualTo(null);
+    assertThat(result.get(1).value).isEqualTo(null);
+    assertThat(result.get(2).key).isEqualTo(__2);
+    assertThat(result.get(2).value).isEqualTo(__2);
+  }
+
+
+  @Test
   public void testGetMultiple() {
     List<KeyValue> result = RxObservables.toSingleStreamBlocking(
       db.get(Observable.from(new byte[][]{__3, __1, __2}))

@@ -16,6 +16,8 @@ package org.deephacks.rxlmdb;
 import org.fusesource.lmdbjni.*;
 import rx.*;
 import rx.exceptions.OnErrorFailedException;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.BlockingObservable;
 
@@ -53,9 +55,17 @@ public class RxDB {
   }
 
   public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
-    GetSubscriber subscriber = new GetSubscriber(this, tx);
-    keys.subscribe(subscriber);
-    return subscriber.obs;
+    return keys.map(key -> {
+      try {
+        return new KeyValue(key, db.get(tx.tx, key));
+      } catch (Throwable e) {
+        return new KeyValue(key, null);
+      }
+    }).doOnCompleted(() -> {
+      if (!tx.isUserManaged) {
+        tx.commit();
+      }
+    });
   }
 
   public void delete() {
@@ -185,55 +195,6 @@ public class RxDB {
     public void onNext(KeyValue kv) {
       try {
         db.put(tx.tx, kv.key, kv.value);
-      } catch (Throwable e) {
-        throw new OnErrorFailedException(e);
-      }
-    }
-  }
-
-  private static class GetSubscriber extends Subscriber<byte[]> {
-    final RxTx tx;
-    final Database db;
-    final LinkedList<KeyValue> values = new LinkedList<>();
-    final Observable<KeyValue> obs;
-
-    private GetSubscriber(RxDB db, RxTx tx) {
-      this.tx = tx;
-      this.db = db.db;
-      this.obs = Observable.from(new Iterable<KeyValue>() {
-        @Override
-        public Iterator<KeyValue> iterator() {
-          return new Iterator<KeyValue>() {
-            @Override
-            public boolean hasNext() {
-              return !values.isEmpty();
-            }
-
-            @Override
-            public KeyValue next() {
-              return values.pollFirst();
-            }
-          };
-        }
-      });
-    }
-
-    @Override
-    public void onCompleted() {
-      if (!tx.isUserManaged) {
-        tx.commit();
-      }
-    }
-
-    @Override
-    public void onError(Throwable e) {
-      tx.abort();
-    }
-
-    @Override
-    public void onNext(byte[] key) {
-      try {
-        values.add(new KeyValue(key, db.get(tx.tx, key)));
       } catch (Throwable e) {
         throw new OnErrorFailedException(e);
       }

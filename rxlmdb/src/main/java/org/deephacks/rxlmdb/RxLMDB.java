@@ -25,7 +25,7 @@ public class RxLMDB {
   final Env env;
   final Path path;
   final Scheduler scheduler;
-
+  final int flags;
   private RxLMDB(Builder builder) {
     this.env = new Env();
     Optional.ofNullable(builder.size)
@@ -34,6 +34,7 @@ public class RxLMDB {
       .ifPresent(size -> this.env.setMaxDbs(builder.maxDbs));
     Optional.ofNullable(builder.maxReaders)
       .ifPresent(size -> this.env.setMaxReaders(builder.maxReaders));
+    this.flags = builder.flags;
     this.path = IoUtil.createPathOrTemp(builder.path);
     // do not tie transactions to threads since it breaks parallel range scans
 
@@ -122,52 +123,52 @@ public class RxLMDB {
     }
 
     public Builder fixedmap() {
-      flags = flags | Constants.FIXEDMAP;
+      flags |= Constants.FIXEDMAP;
       return this;
     }
 
-    public Builder nosubdir() {
-      flags = flags | Constants.NOSUBDIR;
+    public Builder noSubdir() {
+      flags |= Constants.NOSUBDIR;
       return this;
     }
 
     public Builder readOnly() {
-      flags = flags | Constants.RDONLY;
+      flags |= Constants.RDONLY;
       return this;
     }
 
     public Builder writeMap() {
-      flags = flags | Constants.WRITEMAP;
+      flags |= Constants.WRITEMAP;
       return this;
     }
 
     public Builder noMetaSync() {
-      flags = flags | Constants.NOMETASYNC;
+      flags |= Constants.NOMETASYNC;
       return this;
     }
 
     public Builder noSync() {
-      flags = flags | Constants.NOSYNC;
+      flags |= Constants.NOSYNC;
       return this;
     }
 
     public Builder mapAsync() {
-      flags = flags | Constants.MAPASYNC;
+      flags |= Constants.MAPASYNC;
       return this;
     }
 
     public Builder noLock() {
-      flags = flags | Constants.NOLOCK;
+      flags |= Constants.NOLOCK;
       return this;
     }
 
     public Builder noReadahead() {
-      flags = flags | Constants.NORDAHEAD;
+      flags |= Constants.NORDAHEAD;
       return this;
     }
 
     public Builder noMemInit() {
-      flags = flags | Constants.NOMEMINIT;
+      flags |= Constants.NOMEMINIT;
       return this;
     }
 

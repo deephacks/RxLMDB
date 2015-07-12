@@ -43,4 +43,19 @@ public class EnvTest {
     Path path = lmdb.getPath();
     assertThat(path.toString()).isEqualTo(tmp);
   }
+
+  @Test
+  public void tesAllEnv() {
+    String tmp = IoUtil.TMP_DIR + UUID.randomUUID().toString();
+    RxLMDB.builder()
+      .path(tmp)
+      .fixedmap()
+      .mapAsync()
+      .noLock()
+      .noMemInit()
+      .noMetaSync()
+      .noReadahead()
+      .noSync()
+      .build();
+  }
 }

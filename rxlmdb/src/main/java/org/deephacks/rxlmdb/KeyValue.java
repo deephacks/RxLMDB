@@ -16,6 +16,7 @@ package org.deephacks.rxlmdb;
 import org.fusesource.lmdbjni.DirectBuffer;
 import org.fusesource.lmdbjni.Entry;
 
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 public class KeyValue {
@@ -39,6 +40,22 @@ public class KeyValue {
     value.getBytes(0, v);
     this.key = k;
     this.value = v;
+  }
+
+  public byte getKeyByte(int pos) {
+    return key[pos];
+  }
+
+  public short getKeyShort(int pos) {
+    return new DirectBuffer(key).getShort(pos, ByteOrder.BIG_ENDIAN);
+  }
+
+  public int getKeyInt(int pos) {
+    return new DirectBuffer(key).getInt(pos, ByteOrder.BIG_ENDIAN);
+  }
+
+  public long getKeyLong(int pos) {
+    return new DirectBuffer(key).getLong(pos, ByteOrder.BIG_ENDIAN);
   }
 
   @Override

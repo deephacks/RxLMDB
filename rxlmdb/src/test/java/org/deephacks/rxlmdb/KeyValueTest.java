@@ -12,14 +12,16 @@ public class KeyValueTest {
 
   @Test
   public void testFromDirectBuffer() {
-    DirectBuffer buffer = new DirectBuffer(ByteBuffer.allocateDirect(1 + 4 + 8));
+    DirectBuffer buffer = new DirectBuffer(ByteBuffer.allocateDirect(1 + 2 + 4 + 8));
     buffer.putByte(0, (byte) 1);
-    buffer.putInt(1, 2, ByteOrder.BIG_ENDIAN);
-    buffer.putLong(5, 3, ByteOrder.BIG_ENDIAN);
+    buffer.putShort(1, (short) 2, ByteOrder.BIG_ENDIAN);
+    buffer.putInt(3, 3, ByteOrder.BIG_ENDIAN);
+    buffer.putLong(7, 4, ByteOrder.BIG_ENDIAN);
 
     KeyValue kv = new KeyValue(buffer, buffer);
     assertThat(kv.getKeyByte(0)).isEqualTo((byte) 1);
-    assertThat(kv.getKeyInt(1)).isEqualTo(2);
-    assertThat(kv.getKeyLong(5)).isEqualTo(3L);
+    assertThat(kv.getKeyShort(1)).isEqualTo((short) 2);
+    assertThat(kv.getKeyInt(3)).isEqualTo(3);
+    assertThat(kv.getKeyLong(7)).isEqualTo(4L);
   }
 }

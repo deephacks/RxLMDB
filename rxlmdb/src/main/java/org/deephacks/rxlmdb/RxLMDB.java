@@ -53,7 +53,7 @@ public class RxLMDB {
   public static RxLMDB tmp() {
     return new Builder()
       .size(ByteUnit.MEGA, 64)
-      .maxReaders(12)
+      .maxDbs(12)
       .build();
   }
 

@@ -51,7 +51,10 @@ public class RxLMDB {
    * Creates an environment of 64MB in a temporary location.
    */
   public static RxLMDB tmp() {
-    return new Builder().size(ByteUnit.MEGA, 64).build();
+    return new Builder()
+      .size(ByteUnit.MEGA, 64)
+      .maxReaders(12)
+      .build();
   }
 
   public Path getPath() {

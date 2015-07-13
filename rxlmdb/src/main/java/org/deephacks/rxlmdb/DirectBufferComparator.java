@@ -70,8 +70,8 @@ class DirectBufferComparator implements Comparator<DirectBuffer> {
      * On the other hand, it is substantially faster on 64-bit.
      */
     for (int i = 0; i < minWords * LONG_BYTES; i += LONG_BYTES) {
-      long lw = buffer1.getLong(i);
-      long rw = buffer2.getLong(i);
+      long lw = buffer1.getLong(i, ByteOrder.BIG_ENDIAN);
+      long rw = buffer2.getLong(i, ByteOrder.BIG_ENDIAN);
       long diff = lw ^ rw;
 
       if (diff != 0) {

@@ -14,6 +14,9 @@
 
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.DirectBuffer;
+
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import static org.deephacks.rxlmdb.KeyRange.KeyRangeType.*;
@@ -54,6 +57,18 @@ public class KeyRange {
 
   public static KeyRange atMostBackward(byte[] stop) {
     return new KeyRange(null, stop, BACKWARD_STOP);
+  }
+
+  public static KeyRange onlyInt(int key) {
+    byte[] startStop = new byte[4];
+    DirectBuffer buffer = new DirectBuffer(startStop);
+    buffer.putInt(0, key, ByteOrder.BIG_ENDIAN);
+    return new KeyRange(startStop, startStop, FOWARD_RANGE);
+  }
+
+  public static KeyRange onlyByte(int key) {
+    byte[] startStop = new byte[] { (byte) key };
+    return new KeyRange(startStop, startStop, FOWARD_RANGE);
   }
 
   public static KeyRange range(byte[] start, byte[] stop) {

@@ -52,6 +52,14 @@ public class ScanTest {
   }
 
   @Test
+  public void testScanOnly() {
+    LinkedList<KeyValue> expected = Fixture.range(__2, __2);
+    toStreamBlocking(db.scan(KeyRange.onlyByte(2)))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    assertThat(expected).isEqualTo(new LinkedList<>());
+  }
+
+  @Test
   public void testScanRangeBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __2);
     toStreamBlocking(db.scan(KeyRange.range(_3, _2)))

@@ -16,6 +16,7 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 * If you want to run fast, zero-copy and parse only what you need.
 * If you want to run faster, also use parallel range scans.
 * If you want to run fastest, do not use RxLMDB, but plain LMDB.
+* Better hardware obviously hardware matters, even more apparent with zero-copy.
 
 ##### 3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz
 

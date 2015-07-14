@@ -60,6 +60,17 @@ public class PutTest {
     assertTrue(expected.isEmpty());
   }
 
+  @Test
+  public void testAppendCommit() {
+    RxTx tx = lmdb.writeTx();
+    db.append(tx, Observable.from(_1_to_9));
+    tx.commit();
+    LinkedList<KeyValue> expected = Fixture.range(__1, __9);
+    toStreamBlocking(db.scan(KeyRange.forward()))
+      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+    assertTrue(expected.isEmpty());
+  }
+
   @Test(expected = NoSuchElementException.class)
   public void testPutException() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();

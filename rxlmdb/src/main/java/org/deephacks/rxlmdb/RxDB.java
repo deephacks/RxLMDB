@@ -41,7 +41,19 @@ public class RxDB {
   }
 
   public void put(RxTx tx, Observable<KeyValue> values) {
-    PutSubscriber putSubscriber = new PutSubscriber(this, tx);
+    put(tx, values, false);
+  }
+
+  public void append(Observable<KeyValue> values) {
+    append(lmdb.internalWriteTx(), values);
+  }
+
+  public void append(RxTx tx, Observable<KeyValue> values) {
+    put(tx, values, true);
+  }
+
+  private void put(RxTx tx, Observable<KeyValue> values, boolean append) {
+    PutSubscriber putSubscriber = new PutSubscriber(this, tx, append);
     values.subscribe(putSubscriber);
   }
 
@@ -168,10 +180,12 @@ public class RxDB {
     final RxTx tx;
     final Database db;
     RuntimeException ex;
+    final boolean append;
 
-    private PutSubscriber(RxDB db, RxTx tx) {
+    private PutSubscriber(RxDB db, RxTx tx, boolean append) {
       this.tx = tx;
       this.db = db.db;
+      this.append = append;
     }
 
     @Override
@@ -189,7 +203,7 @@ public class RxDB {
     @Override
     public void onNext(KeyValue kv) {
       try {
-        db.put(tx.tx, kv.key, kv.value);
+        db.put(tx.tx, kv.key, kv.value, append ? Constants.APPEND : 0);
       } catch (Throwable e) {
         throw new OnErrorFailedException(e);
       }

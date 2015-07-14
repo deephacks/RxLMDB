@@ -14,7 +14,7 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 * If you want to run faster, also use parallel range scans.
 * If you want to run fastest, do not use RxLMDB, but plain LMDB.
 
-3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz == dinosaur hardware
+##### 3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz
 
 1 Thread
 
@@ -53,6 +53,28 @@ SbeForwardRangeScan.rx              thrpt   10   4755629.167 ± 1821428.568  ops
 ValsForwardRangeScan.plain          thrpt   10   8546665.500 ± 1269468.808  ops/s
 ValsForwardRangeScan.rx             thrpt   10   5812951.172 ±  573829.010  ops/s
 ```
+
+##### 3.16.0-4-amd64, Intel(R) Core(TM) i7-3740QM CPU @ 2.70GHz
+
+8 threads
+
+```bash
+Benchmark                            Mode  Cnt         Score          Error  Units
+BigKeyValueForwardRangeScan.plain   thrpt   10  10933343.150 ±    89647.695  ops/s
+BigKeyValueForwardRangeScan.rx      thrpt   10   9537755.671 ±    79734.499  ops/s
+BigZeroCopyForwardRangeScan.plain   thrpt   10  67753109.315 ± 25043041.656  ops/s
+KeyValueForwardRangeScan.plain      thrpt   10  51957281.758 ±  1315119.210  ops/s
+KeyValueForwardRangeScan.rx         thrpt   10  37261517.010 ±  2339705.356  ops/s
+KeyValueForwardSkipRangeScan.plain  thrpt   10  72329999.694 ±  9638355.993  ops/s
+KeyValueForwardSkipRangeScan.rx     thrpt   10  49290830.102 ±  6230559.413  ops/s
+ProtoForwardRangeScan.plain         thrpt   10   2043454.082 ±    96951.493  ops/s
+ProtoForwardRangeScan.rx            thrpt   10   2129419.080 ±   199508.987  ops/s
+SbeForwardRangeScan.plain           thrpt   10  59222391.194 ±  8513022.888  ops/s
+SbeForwardRangeScan.rx              thrpt   10  43212267.029 ±  1891687.949  ops/s
+ValsForwardRangeScan.plain          thrpt   10  54333422.372 ±  2917837.551  ops/s
+ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  ops/s
+```
+
 
 ### Maven
 

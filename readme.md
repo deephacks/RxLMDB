@@ -12,11 +12,11 @@ Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low
 
 ##### Conclusion
 
-* If you want to run slow, copy and parse everything, like protobuf.
-* If you want to run fast, zero-copy and parse only what you need.
+* If you want to run slow, copy-parse everything, like protobuf.
+* If you want to run fast, zero-copy-parse only what you need.
 * If you want to run faster, also use parallel range scans.
 * If you want to run fastest, do not use RxLMDB, but plain LMDB.
-* Better hardware obviously hardware matters, even more apparent with zero-copy.
+* Better hardware obviously matters, zero-copy-parse scales well, copy-parse scales badly.
 
 ##### 3.16.0-4-amd64, Linux Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz
 

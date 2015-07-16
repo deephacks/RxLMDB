@@ -12,10 +12,10 @@ public abstract class AbstractRxThread<T> {
   public RxTx tx;
   public Iterator<T> values;
   public Iterator<List<T>> obs;
-  public ZcMap<T> mapper;
+  public DirectMapper<T> mapper;
   private RangedRowsSetup setup;
 
-  public AbstractRxThread(RangedRowsSetup setup, ZcMap<T> mapper) {
+  public AbstractRxThread(RangedRowsSetup setup, DirectMapper<T> mapper) {
     this.tx = setup.lmdb.readTx();
     this.mapper = mapper;
     this.setup = setup;

@@ -16,13 +16,12 @@ package org.deephacks.rxlmdb;
 import org.fusesource.lmdbjni.*;
 import rx.*;
 import rx.exceptions.OnErrorFailedException;
-import rx.functions.Func1;
 
 import java.util.List;
 import java.util.Optional;
 
 public class RxDB {
-  final ZcMap.KeyValueMap scanDefault = new ZcMap.KeyValueMap();
+  final DirectMapper.KeyValueMapper scanDefault = new DirectMapper.KeyValueMapper();
   final RxLMDB lmdb;
   final Database db;
   final String name;
@@ -97,12 +96,12 @@ public class RxDB {
     keys.subscribe(new DeleteSubscriber(this, tx));
   }
 
-  public <T> Observable<List<T>> scan(ZcMap<T> scan) {
+  public <T> Observable<List<T>> scan(DirectMapper<T> scan) {
     return scan(defaultBuffer, lmdb.internalReadTx(), scan);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, ZcMap<T> scan) {
-    return scan(buffer, lmdb.internalReadTx(), scan);
+  public <T> Observable<List<T>> scan(int buffer, DirectMapper<T> mapper) {
+    return scan(buffer, lmdb.internalReadTx(), mapper);
   }
 
   public Observable<List<KeyValue>> scan(KeyRange... ranges) {
@@ -121,20 +120,20 @@ public class RxDB {
     return scan(buffer, tx, scanDefault, ranges);
   }
 
-  public <T> Observable<List<T>> scan(ZcMap<T> scan, KeyRange... ranges) {
-    return scan(defaultBuffer, lmdb.internalReadTx(), scan, ranges);
+  public <T> Observable<List<T>> scan(DirectMapper<T> mapper, KeyRange... ranges) {
+    return scan(defaultBuffer, lmdb.internalReadTx(), mapper, ranges);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, ZcMap<T> scan, KeyRange... ranges) {
-    return scan(buffer, lmdb.internalReadTx(), scan, ranges);
+  public <T> Observable<List<T>> scan(int buffer, DirectMapper<T> mapper, KeyRange... ranges) {
+    return scan(buffer, lmdb.internalReadTx(), mapper, ranges);
   }
 
-  public <T> Observable<List<T>> scan(RxTx tx, ZcMap<T> scan, KeyRange... ranges) {
-    return scan(defaultBuffer, tx, scan, ranges);
+  public <T> Observable<List<T>> scan(RxTx tx, DirectMapper<T> mapper, KeyRange... ranges) {
+    return scan(defaultBuffer, tx, mapper, ranges);
   }
 
-  public <T> Observable<List<T>> scan(int buffer, RxTx tx, ZcMap<T> scan, KeyRange... ranges) {
-    return Scanners.scan(db, tx, scan, scheduler, buffer, ranges);
+  public <T> Observable<List<T>> scan(int buffer, RxTx tx, DirectMapper<T> mapper, KeyRange... ranges) {
+    return Scanners.scan(db, tx, mapper, scheduler, buffer, ranges);
   }
 
   public static Builder builder() {

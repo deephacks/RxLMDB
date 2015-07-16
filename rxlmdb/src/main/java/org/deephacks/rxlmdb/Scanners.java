@@ -16,46 +16,46 @@ public class Scanners {
 
   public static final <T> Observable<List<T>> scan(Database db,
                                                    RxTx tx,
-                                                   ZcMap<T> scan,
+                                                   DirectMapper<T> mapper,
                                                    Scheduler scheduler,
                                                    int buffer,
                                                    KeyRange... ranges) {
     if (ranges.length == 0) {
-      Scanner<T> scanner = getScanner(db, tx, scan, KeyRange.forward());
+      Scanner<T> scanner = getScanner(db, tx, mapper, KeyRange.forward());
       return createObservable(scanner, tx).buffer(buffer);
     } else if (ranges.length == 1) {
-      Scanner<T> scanner = getScanner(db, tx, scan, ranges[0]);
+      Scanner<T> scanner = getScanner(db, tx, mapper, ranges[0]);
       return createObservable(scanner, tx).buffer(buffer);
     }
     if (!tx.isUserManaged) {
       throw new IllegalArgumentException("Parallel scan transactions must be handled by the user");
     }
     return Arrays.asList(ranges).stream()
-      .map(range -> createObservable(getScanner(db, tx, scan, range), tx)
+      .map(range -> createObservable(getScanner(db, tx, mapper, range), tx)
         .buffer(buffer).subscribeOn(scheduler).onBackpressureBuffer())
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }
 
-  private static final <T> Scanner<T> getScanner(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
+  private static final <T> Scanner<T> getScanner(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
     switch (range.type) {
       case FORWARD:
-        return new ForwardScan<>(db, tx, scan, range);
+        return new ForwardScan<>(db, tx, mapper, range);
       case FORWARD_START:
-        return new ForwardStartScan<>(db, tx, scan, range);
+        return new ForwardStartScan<>(db, tx, mapper, range);
       case FORWARD_STOP:
-        return new ForwardStopScan<>(db, tx, scan, range);
+        return new ForwardStopScan<>(db, tx, mapper, range);
       case FOWARD_RANGE:
-        return new ForwardRangeScan<>(db, tx, scan, range);
+        return new ForwardRangeScan<>(db, tx, mapper, range);
       case BACKWARD:
-        return new BackwardScan<>(db, tx, scan, range);
+        return new BackwardScan<>(db, tx, mapper, range);
       case BACKWARD_START:
-        return new BackwardStartScan<>(db, tx, scan, range);
+        return new BackwardStartScan<>(db, tx, mapper, range);
       case BACKWARD_STOP:
-        return new BackwardStopScan<>(db, tx, scan, range);
+        return new BackwardStopScan<>(db, tx, mapper, range);
       case BACKWARD_RANGE:
-        return new BackwardRangeScan<>(db, tx, scan, range);
+        return new BackwardRangeScan<>(db, tx, mapper, range);
       default:
-        return new ForwardScan<>(db, tx, scan, range);
+        return new ForwardScan<>(db, tx, mapper, range);
     }
   }
 
@@ -84,14 +84,14 @@ public class Scanners {
   static abstract class Scanner<T> {
     final Database db;
     final RxTx tx;
-    final ZcMap<T> scan;
+    final DirectMapper<T> mapper;
     final KeyRange range;
     BufferCursor cursor;
 
-    protected Scanner(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
+    protected Scanner(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
       this.db = db;
       this.tx = tx;
-      this.scan = scan;
+      this.mapper = mapper;
       this.range = range;
     }
 
@@ -100,8 +100,8 @@ public class Scanners {
 
   static class ForwardScan<T> extends Scanner<T> {
 
-    protected ForwardScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected ForwardScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class Scanners {
         if (subscriber.isUnsubscribed()) {
           return;
         }
-        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
         if (result != null) {
           subscriber.onNext(result);
         }
@@ -123,8 +123,8 @@ public class Scanners {
 
   static class BackwardScan<T> extends Scanner<T> {
 
-    protected BackwardScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected BackwardScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -135,7 +135,7 @@ public class Scanners {
         if (subscriber.isUnsubscribed()) {
           return;
         }
-        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
         if (result != null) {
           subscriber.onNext(result);
         }
@@ -146,8 +146,8 @@ public class Scanners {
 
   static class ForwardStopScan<T> extends Scanner<T> {
 
-    protected ForwardStopScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected ForwardStopScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class Scanners {
           if (subscriber.isUnsubscribed()) {
             return;
           }
-          T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+          T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
           if (result != null) {
             subscriber.onNext(result);
           }
@@ -172,8 +172,8 @@ public class Scanners {
 
   static class BackwardStopScan<T> extends Scanner<T> {
 
-    protected BackwardStopScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected BackwardStopScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class Scanners {
           return;
         }
         if (compareTo(cursor.keyBuffer(), stop) >= 0) {
-          T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+          T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
           if (result != null) {
             subscriber.onNext(result);
           }
@@ -198,8 +198,8 @@ public class Scanners {
 
   static class ForwardStartScan<T> extends Scanner<T> {
 
-    protected ForwardStartScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected ForwardStartScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -210,7 +210,7 @@ public class Scanners {
         if (subscriber.isUnsubscribed()) {
           return;
         }
-        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
         if (result != null) {
           subscriber.onNext(result);
         }
@@ -221,8 +221,8 @@ public class Scanners {
 
   static class BackwardStartScan<T> extends Scanner<T> {
 
-    protected BackwardStartScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected BackwardStartScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -233,7 +233,7 @@ public class Scanners {
         if (subscriber.isUnsubscribed()) {
           return;
         }
-        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
         if (result != null) {
           subscriber.onNext(result);
         }
@@ -245,8 +245,8 @@ public class Scanners {
 
   static class ForwardRangeScan<T> extends Scanner<T> {
 
-    protected ForwardRangeScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected ForwardRangeScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -257,13 +257,13 @@ public class Scanners {
       if (!hasNext) {
         return;
       } else {
-        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
         if (result != null) {
           subscriber.onNext(result);
         }
       }
       while (!subscriber.isUnsubscribed() && cursor.next() && compareTo(cursor.keyBuffer(), stop) <= 0) {
-        T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+        T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
         if (result != null) {
           subscriber.onNext(result);
         }
@@ -273,8 +273,8 @@ public class Scanners {
 
   static class BackwardRangeScan<T> extends Scanner<T> {
 
-    protected BackwardRangeScan(Database db, RxTx tx, ZcMap<T> scan, KeyRange range) {
-      super(db, tx, scan, range);
+    protected BackwardRangeScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
+      super(db, tx, mapper, range);
     }
 
     @Override
@@ -286,7 +286,7 @@ public class Scanners {
         if (subscriber.isUnsubscribed()) {
           return;
         } else if (compareTo(cursor.keyBuffer(), stop) >= 0) {
-          T result = scan.map(cursor.keyBuffer(), cursor.valBuffer());
+          T result = mapper.map(cursor.keyBuffer(), cursor.valBuffer());
           if (result != null) {
             subscriber.onNext(result);
           }

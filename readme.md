@@ -172,6 +172,14 @@ ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  op
     KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
   );
   
+  // Cursor scans
+  Observable<List<byte[]>> obs = db.cursor((cursor, subscriber) -> {
+    cursor.first();
+    subscriber.onNext(cursor.keyBytes());
+    cursor.last();
+    subscriber.onNext(cursor.keyBytes());
+  });
+    
   // count rows  
   Integer count = db.scan()
     .flatMap(Observable::from)

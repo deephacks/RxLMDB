@@ -12,9 +12,9 @@ import java.util.List;
 
 import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 
-public class Scanners {
+class Scanners {
 
-  public static final <T> Observable<List<T>> scan(Database db,
+  static final <T> Observable<List<T>> scan(Database db,
                                                    RxTx tx,
                                                    DirectMapper<T> mapper,
                                                    Scheduler scheduler,
@@ -35,6 +35,11 @@ public class Scanners {
         .buffer(buffer).subscribeOn(scheduler).onBackpressureBuffer())
       .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
   }
+
+  static <T> Observable<List<T>> scan(Database db, int buffer, RxTx tx, CursorScanner<T> scanner) {
+    return createObservable(new CursorScan(db, tx, null, null, scanner), tx).buffer(buffer);
+  }
+
 
   private static final <T> Scanner<T> getScanner(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range) {
     switch (range.type) {
@@ -292,6 +297,21 @@ public class Scanners {
           }
         }
         hasNext = cursor.prev();
+      }
+    }
+  }
+  static class CursorScan<T> extends Scanner<T> {
+    private final CursorScanner<T> scanner;
+
+    protected CursorScan(Database db, RxTx tx, DirectMapper<T> mapper, KeyRange range, CursorScanner<T> scanner) {
+      super(db, tx, mapper, range);
+      this.scanner = scanner;
+    }
+
+    @Override
+    public void execute(Subscriber<? super T> subscriber) {
+      try (BufferCursor cursor = db.bufferCursor(tx.tx)) {
+        scanner.execute(cursor, subscriber);
       }
     }
   }

@@ -136,6 +136,22 @@ public class RxDB {
     return Scanners.scan(db, tx, mapper, scheduler, buffer, ranges);
   }
 
+  public <T> Observable<List<T>> cursor(CursorScanner<T> scanner) {
+    return cursor(defaultBuffer, lmdb.internalReadTx(), scanner);
+  }
+
+  public <T> Observable<List<T>> cursor(RxTx tx, CursorScanner<T> scanner) {
+    return cursor(defaultBuffer, tx, scanner);
+  }
+
+  public <T> Observable<List<T>> cursor(int buffer, CursorScanner<T> scanner) {
+    return cursor(buffer, lmdb.internalReadTx(), scanner);
+  }
+
+  public <T> Observable<List<T>> cursor(int buffer, RxTx tx, CursorScanner<T> scanner) {
+    return Scanners.scan(db, buffer, tx, scanner);
+  }
+
   public static Builder builder() {
     return new Builder();
   }

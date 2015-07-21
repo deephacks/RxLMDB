@@ -17,11 +17,12 @@ import org.fusesource.lmdbjni.*;
 import rx.*;
 import rx.exceptions.OnErrorFailedException;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 
 public class RxDB {
-  final DirectMapper.KeyValueMapper scanDefault = new DirectMapper.KeyValueMapper();
+  final DirectMapper.KeyValueMapper KV_MAPPER = new DirectMapper.KeyValueMapper();
   final RxLMDB lmdb;
   final Database db;
   final String name;
@@ -57,15 +58,26 @@ public class RxDB {
   }
 
   public Observable<KeyValue> get(Observable<byte[]> keys) {
-    return get(lmdb.internalReadTx(), keys);
+    return get(lmdb.internalReadTx(), KV_MAPPER, keys);
   }
 
-  public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
+  public <T> Observable<T> get(DirectMapper<T> mapper, Observable<byte[]> keys) {
+    return get(lmdb.internalReadTx(), mapper, keys);
+  }
+
+  public <T> Observable<T> get(RxTx tx, DirectMapper<T> mapper, Observable<byte[]> keys) {
     return keys.flatMap(key -> {
       try {
-        return Observable.just(new KeyValue(key, db.get(tx.tx, key)));
+        ByteBuffer bb = ByteBuffer.allocateDirect(key.length).put(key);
+        DirectBuffer keyBuffer = new DirectBuffer(bb);
+        DirectBuffer valBuffer = new DirectBuffer(0, 0);
+        if (LMDBException.NOTFOUND != db.get(tx.tx, keyBuffer, valBuffer)) {
+          return Observable.just(mapper.map(keyBuffer, valBuffer));
+        } else {
+          return Observable.just(null);
+        }
       } catch (Throwable e) {
-        return Observable.just(new KeyValue(key, null));
+        return Observable.just(null);
       }
     }).doOnCompleted(() -> {
       if (!tx.isUserManaged) {
@@ -105,19 +117,19 @@ public class RxDB {
   }
 
   public Observable<List<KeyValue>> scan(KeyRange... ranges) {
-    return scan(defaultBuffer, lmdb.internalReadTx(), scanDefault, ranges);
+    return scan(defaultBuffer, lmdb.internalReadTx(), KV_MAPPER, ranges);
   }
 
   public Observable<List<KeyValue>> scan(int buffer, KeyRange... ranges) {
-    return scan(buffer, lmdb.internalReadTx(), scanDefault, ranges);
+    return scan(buffer, lmdb.internalReadTx(), KV_MAPPER, ranges);
   }
 
   public Observable<List<KeyValue>> scan(RxTx tx, KeyRange... ranges) {
-    return scan(defaultBuffer, tx, scanDefault, ranges);
+    return scan(defaultBuffer, tx, KV_MAPPER, ranges);
   }
 
   public Observable<List<KeyValue>> scan(int buffer, RxTx tx, KeyRange... ranges) {
-    return scan(buffer, tx, scanDefault, ranges);
+    return scan(buffer, tx, KV_MAPPER, ranges);
   }
 
   public <T> Observable<List<T>> scan(DirectMapper<T> mapper, KeyRange... ranges) {

@@ -61,6 +61,10 @@ public class RxDB {
     return get(lmdb.internalReadTx(), KV_MAPPER, keys);
   }
 
+  public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
+    return get(tx, KV_MAPPER, keys);
+  }
+
   public <T> Observable<T> get(DirectMapper<T> mapper, Observable<byte[]> keys) {
     return get(lmdb.internalReadTx(), mapper, keys);
   }

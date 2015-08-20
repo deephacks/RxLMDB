@@ -16,18 +16,18 @@
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni</artifactId>
-      <version>0.4.2</version>
+      <version>0.4.4</version>
     </dependency>
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni-linux64</artifactId>
-      <version>0.4.2</version>
+      <version>0.4.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.reactivex</groupId>
       <artifactId>rxjava</artifactId>
-      <version>1.0.12</version>
+      <version>1.0.14</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

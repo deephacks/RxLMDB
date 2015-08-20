@@ -210,7 +210,6 @@ public class RxDB {
   private static class PutSubscriber extends Subscriber<KeyValue> {
     final RxTx tx;
     final Database db;
-    RuntimeException ex;
     final boolean append;
 
     private PutSubscriber(RxDB db, RxTx tx, boolean append) {

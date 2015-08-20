@@ -72,16 +72,17 @@ class Scanners {
           subscriber.onCompleted();
         }
       } catch (Throwable e) {
+        scanner.cursor.close();
         if (!tx.isUserManaged) {
           tx.abort();
         }
         subscriber.onError(e);
       } finally {
+        scanner.cursor.close();
         if (!tx.isUserManaged) {
           // no op if tx was aborted
           tx.commit();
         }
-        scanner.cursor.close();
       }
     });
   }

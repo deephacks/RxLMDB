@@ -20,6 +20,7 @@ import java.io.Closeable;
 
 public class RxTx implements Closeable {
   final Transaction tx;
+  /** user managed transactions are closed by user */
   final boolean isUserManaged;
 
   RxTx(Transaction tx, boolean isUserManaged) {

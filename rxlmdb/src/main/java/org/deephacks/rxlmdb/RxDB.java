@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class RxDB {
+  /** copy by default */
   final DirectMapper.KeyValueMapper KV_MAPPER = new DirectMapper.KeyValueMapper();
   final RxLMDB lmdb;
   final Database db;
@@ -90,10 +91,16 @@ public class RxDB {
     });
   }
 
+  /**
+   * @see org.deephacks.rxlmdb.RxDB#delete(RxTx)
+   */
   public void delete() {
     delete(lmdb.internalWriteTx());
   }
 
+  /**
+   * Delete all records
+   */
   public void delete(RxTx tx) {
     // non-blocking needed?
     scan(tx).toBlocking().forEach(keyValues -> {
@@ -104,10 +111,16 @@ public class RxDB {
     });
   }
 
+  /**
+   * @see org.deephacks.rxlmdb.RxDB#delete(RxTx, Observable)
+   */
   public void delete(Observable<byte[]> keys) {
     delete(lmdb.internalWriteTx(), keys);
   }
 
+  /**
+   * Delete records associated with provided keys.
+   */
   public void delete(RxTx tx, Observable<byte[]> keys) {
     keys.subscribe(new DeleteSubscriber(this, tx));
   }

@@ -15,11 +15,11 @@ import static org.deephacks.rxlmdb.DirectBufferComparator.compareTo;
 class Scanners {
 
   static final <T> Observable<List<T>> scan(Database db,
-                                                   RxTx tx,
-                                                   DirectMapper<T> mapper,
-                                                   Scheduler scheduler,
-                                                   int buffer,
-                                                   KeyRange... ranges) {
+                                            RxTx tx,
+                                            DirectMapper<T> mapper,
+                                            Scheduler scheduler,
+                                            int buffer,
+                                            KeyRange... ranges) {
     if (ranges.length == 0) {
       Scanner<T> scanner = getScanner(db, tx, mapper, KeyRange.forward());
       return createObservable(scanner, tx).buffer(buffer);

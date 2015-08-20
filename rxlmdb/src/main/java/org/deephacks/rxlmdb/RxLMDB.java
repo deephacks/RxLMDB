@@ -26,6 +26,7 @@ public class RxLMDB {
   final Path path;
   final Scheduler scheduler;
   final int flags;
+
   private RxLMDB(Builder builder) {
     this.env = new Env();
     Optional.ofNullable(builder.size)
@@ -36,8 +37,8 @@ public class RxLMDB {
       .ifPresent(size -> this.env.setMaxReaders(builder.maxReaders));
     this.flags = builder.flags;
     this.path = IoUtil.createPathOrTemp(builder.path);
-    // do not tie transactions to threads since it breaks parallel range scans
 
+    // never tie transactions to threads since it breaks parallel range scans
     this.env.open(path.toString(), Constants.NOTLS | builder.flags);
     this.scheduler = Optional.ofNullable(builder.scheduler)
       .orElse(Schedulers.io());

@@ -20,7 +20,7 @@
     </dependency>
     <dependency>
       <groupId>org.deephacks.rxlmdb</groupId>
-      <artifactId>rxlmdb-server</artifactId>
+      <artifactId>rxlmdb-client</artifactId>
       <version>0.0.4-SNAPSHOT</version>
     </dependency>
   </dependencies>

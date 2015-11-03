@@ -96,6 +96,7 @@
       <plugin>
         <groupId>com.squareup.wire</groupId>
         <artifactId>wire-maven-plugin</artifactId>
+        <version>1.8.0</version>
         <executions>
           <execution>
             <phase>generate-sources</phase>

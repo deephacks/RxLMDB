@@ -53,6 +53,8 @@
 
   <modules>
     <module>rxlmdb</module>
+    <module>rxlmdb-client</module>
+    <module>rxlmdb-server</module>
     <module>jmh</module>
   </modules>
 
@@ -130,6 +132,12 @@
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
       <version>0.26</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.deephacks.lmdbjni</groupId>
+      <artifactId>lmdbjni-linux64</artifactId>
+      <version>0.4.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

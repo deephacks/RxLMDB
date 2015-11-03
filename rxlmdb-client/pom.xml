@@ -8,20 +8,20 @@
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>rxlmdb</artifactId>
-  <name>rxlmdb</name>
+  <artifactId>rxlmdb-client</artifactId>
+  <name>rxlmdb-client</name>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
-      <groupId>org.deephacks.lmdbjni</groupId>
-      <artifactId>lmdbjni</artifactId>
-      <version>0.4.4</version>
+      <groupId>org.deephacks.rxlmdb</groupId>
+      <artifactId>rxlmdb</artifactId>
+      <version>0.0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>io.reactivex</groupId>
-      <artifactId>rxjava</artifactId>
-      <version>1.0.14</version>
+      <groupId>uk.co.real-logic</groupId>
+      <artifactId>aeron-all</artifactId>
+      <version>0.1.5</version>
     </dependency>
   </dependencies>
 

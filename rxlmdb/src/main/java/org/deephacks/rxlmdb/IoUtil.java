@@ -33,13 +33,13 @@ class IoUtil {
     }
   }
 
-  static Path createPathOrTemp(Optional<Path> optional) {
-    Path path = optional.orElse(createTmpDir());
+  static Path createPathOrTemp(Path path) {
+    Path aPath = Optional.ofNullable(path).orElse(createTmpDir());
     try {
-      Files.createDirectories(path);
+      Files.createDirectories(aPath);
     } catch (IOException e) {
       throw new IllegalArgumentException(e);
     }
-    return path;
+    return aPath;
   }
 }

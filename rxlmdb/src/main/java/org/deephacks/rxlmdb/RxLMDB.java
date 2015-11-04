@@ -99,7 +99,7 @@ public class RxLMDB {
   }
 
   public static class Builder {
-    private Optional<Path> path = Optional.empty();
+    private Path path;
     private long size;
     private Scheduler scheduler;
     private int flags;
@@ -107,12 +107,12 @@ public class RxLMDB {
     private Long maxReaders;
 
     public Builder path(String path) {
-      this.path = Optional.ofNullable(Paths.get(path));
+      this.path = Paths.get(path);
       return this;
     }
 
     public Builder path(Path path) {
-      this.path = Optional.ofNullable(path);
+      this.path = path;
       return this;
     }
 

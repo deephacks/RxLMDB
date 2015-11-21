@@ -40,7 +40,18 @@ public class BatchTest {
     assertThat(list.get(list.size() - 1).key[0], is((byte) counter.get()));
   }
 
-  public static Observable<KeyValue> burst(AtomicInteger counter) {
+  /**
+   * An error item should not affect writing other items.
+   */
+  @Test
+  public void testBatchSingleError() throws InterruptedException {
+    db.batch(Observable.from(new KeyValue[]{ Fixture.values[0], null, Fixture.values[2]}));
+    Thread.sleep(500);
+    List<KeyValue> list = db.scan(KeyRange.forward()).toBlocking().first();
+    assertThat(list.size(), is(2));
+  }
+
+  static Observable<KeyValue> burst(AtomicInteger counter) {
     return Observable.create((Subscriber<? super KeyValue> s) -> {
       int rounds = 5;
       while (!s.isUnsubscribed()) {

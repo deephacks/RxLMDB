@@ -14,7 +14,9 @@
 package org.deephacks.rxlmdb;
 
 import org.fusesource.lmdbjni.*;
-import rx.*;
+import rx.Observable;
+import rx.Scheduler;
+import rx.Subscriber;
 import rx.exceptions.OnErrorFailedException;
 
 import java.nio.ByteBuffer;
@@ -226,7 +228,7 @@ public class RxDB {
     }
   }
 
-  private static class PutSubscriber extends Subscriber<KeyValue> {
+  private static class PutSubscriber extends Subscriber<KeyValue> implements Loggable {
     final RxTx tx;
     final Database db;
     final boolean append;
@@ -247,6 +249,7 @@ public class RxDB {
     @Override
     public void onError(Throwable e) {
       tx.abort();
+      logger().error("Put error.", e);
     }
 
     @Override
@@ -259,7 +262,7 @@ public class RxDB {
     }
   }
 
-  private static class BatchSubscriber extends Subscriber<List<KeyValue>> {
+  private static class BatchSubscriber extends Subscriber<List<KeyValue>> implements Loggable {
     final Database db;
     final Env env;
 
@@ -274,6 +277,7 @@ public class RxDB {
 
     @Override
     public void onError(Throwable e) {
+      logger().error("Batch error.", e);
     }
 
     @Override
@@ -283,8 +287,14 @@ public class RxDB {
           return;
         }
         try (Transaction tx = env.createWriteTransaction()) {
+          System.out.println(kvs.size());
           for (KeyValue kv : kvs) {
-            db.put(tx, kv.key, kv.value, 0);
+            try {
+              db.put(tx, kv.key, kv.value, 0);
+              System.out.println("DOne" + kv.key[0]);
+            } catch (Throwable e) {
+              logger().error("Batch put error.", e);
+            }
           }
           tx.commit();
         }
@@ -294,7 +304,7 @@ public class RxDB {
     }
   }
 
-  private static class DeleteSubscriber extends Subscriber<byte[]> {
+  private static class DeleteSubscriber extends Subscriber<byte[]> implements Loggable {
     final RxTx tx;
     final Database db;
 
@@ -312,6 +322,7 @@ public class RxDB {
 
     @Override
     public void onError(Throwable e) {
+      logger().error("Delete error.", e);
       if (!tx.isUserManaged) {
         tx.abort();
       }

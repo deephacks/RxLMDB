@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Measurement(iterations = 5)
 @Warmup(iterations = 10)
 @Fork(value = 2)
+@Threads(value = 12)
 public class PutTest {
 
   static RxDB db;

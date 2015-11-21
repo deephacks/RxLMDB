@@ -58,7 +58,7 @@ public class RxDB {
 
   public void batch(Observable<KeyValue> values) {
     BatchSubscriber putSubscriber = new BatchSubscriber(this);
-    values.buffer(100, TimeUnit.MILLISECONDS).subscribe(putSubscriber);
+    values.buffer(100, TimeUnit.MILLISECONDS, 512).subscribe(putSubscriber);
   }
 
   private void put(RxTx tx, Observable<KeyValue> values, boolean append) {

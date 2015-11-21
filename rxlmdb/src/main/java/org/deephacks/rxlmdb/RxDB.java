@@ -20,6 +20,7 @@ import rx.exceptions.OnErrorFailedException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class RxDB {
   /** copy by default */
@@ -51,6 +52,11 @@ public class RxDB {
 
   public void append(RxTx tx, Observable<KeyValue> values) {
     put(tx, values, true);
+  }
+
+  public void batch(Observable<KeyValue> values) {
+    BatchSubscriber putSubscriber = new BatchSubscriber(this);
+    values.buffer(100, TimeUnit.MILLISECONDS).subscribe(putSubscriber);
   }
 
   private void put(RxTx tx, Observable<KeyValue> values, boolean append) {
@@ -247,6 +253,41 @@ public class RxDB {
     public void onNext(KeyValue kv) {
       try {
         db.put(tx.tx, kv.key, kv.value, append ? Constants.APPEND : 0);
+      } catch (Throwable e) {
+        throw new OnErrorFailedException(e);
+      }
+    }
+  }
+
+  private static class BatchSubscriber extends Subscriber<List<KeyValue>> {
+    final Database db;
+    final Env env;
+
+    private BatchSubscriber(RxDB db) {
+      this.env = db.lmdb.env;
+      this.db = db.db;
+    }
+
+    @Override
+    public void onCompleted() {
+    }
+
+    @Override
+    public void onError(Throwable e) {
+    }
+
+    @Override
+    public void onNext(List<KeyValue> kvs) {
+      try {
+        if (kvs.size() < 1) {
+          return;
+        }
+        try (Transaction tx = env.createWriteTransaction()) {
+          for (KeyValue kv : kvs) {
+            db.put(tx, kv.key, kv.value, 0);
+          }
+          tx.commit();
+        }
       } catch (Throwable e) {
         throw new OnErrorFailedException(e);
       }

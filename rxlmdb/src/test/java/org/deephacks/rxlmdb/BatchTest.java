@@ -6,6 +6,7 @@ import org.junit.Test;
 import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import rx.subjects.PublishSubject;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,7 +46,11 @@ public class BatchTest {
    */
   @Test
   public void testBatchSingleError() throws InterruptedException {
-    db.batch(Observable.from(new KeyValue[]{ Fixture.values[0], null, Fixture.values[2]}));
+    PublishSubject<KeyValue> subject = PublishSubject.create();
+    db.batch(subject);
+    subject.onNext(Fixture.values[0]);
+    subject.onNext(null);
+    subject.onNext(Fixture.values[2]);
     Thread.sleep(500);
     List<KeyValue> list = db.scan(KeyRange.forward()).toBlocking().first();
     assertThat(list.size(), is(2));

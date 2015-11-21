@@ -287,11 +287,9 @@ public class RxDB {
           return;
         }
         try (Transaction tx = env.createWriteTransaction()) {
-          System.out.println(kvs.size());
           for (KeyValue kv : kvs) {
             try {
               db.put(tx, kv.key, kv.value, 0);
-              System.out.println("DOne" + kv.key[0]);
             } catch (Throwable e) {
               logger().error("Batch put error.", e);
             }

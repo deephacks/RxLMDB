@@ -47,10 +47,11 @@ public class BatchTest {
   @Test
   public void testBatchSingleError() throws InterruptedException {
     PublishSubject<KeyValue> subject = PublishSubject.create();
-    db.batch(subject);
+    db.batch(subject.observeOn(Schedulers.newThread()));
     subject.onNext(Fixture.values[0]);
     subject.onNext(null);
     subject.onNext(Fixture.values[2]);
+    subject.onCompleted();
     Thread.sleep(500);
     List<KeyValue> list = db.scan(KeyRange.forward()).toBlocking().first();
     assertThat(list.size(), is(2));

@@ -39,22 +39,43 @@ public class RxDB {
     this.scheduler = lmdb.scheduler;
   }
 
+  /**
+   * Put kvs into the database and commit when the last
+   * element has been written.
+   */
   public void put(Observable<KeyValue> values) {
     put(lmdb.internalWriteTx(), values);
   }
 
+  /**
+   * Same as regular put but the user is in charge of the transaction.
+   *
+   * @see RxDB#put(Observable)
+   */
   public void put(RxTx tx, Observable<KeyValue> values) {
     put(tx, values, false);
   }
 
+  /**
+   * @see RxDB#append(RxTx, Observable)
+   */
   public void append(Observable<KeyValue> values) {
     append(lmdb.internalWriteTx(), values);
   }
 
+  /**
+   * Append the kvs to the end of the database without comparing its order first.
+   * Appending a key that is not greater than the highest existing key will
+   * cause corruption.
+   */
   public void append(RxTx tx, Observable<KeyValue> values) {
     put(tx, values, true);
   }
 
+  /**
+   * Write and commit kvs asynchronously in batches. The user is free to
+   * use choose whatever buffering configuration is needed.
+   */
   public void batch(Observable<List<KeyValue>> values) {
     BatchSubscriber putSubscriber = new BatchSubscriber(this);
     values.subscribe(putSubscriber);
@@ -65,18 +86,36 @@ public class RxDB {
     values.subscribe(putSubscriber);
   }
 
+  /**
+   * Get kvs from the database. Items that are not found will be
+   * represented as null.
+   *
+   */
   public Observable<KeyValue> get(Observable<byte[]> keys) {
     return get(lmdb.internalReadTx(), KV_MAPPER, keys);
   }
 
+  /**
+   * @see RxDB#get(Observable)
+   */
   public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
     return get(tx, KV_MAPPER, keys);
   }
 
+  /**
+   * Allow zero copy transformation of the resulting values.
+   *
+   * @see RxDB#get(Observable)
+   */
   public <T> Observable<T> get(DirectMapper<T> mapper, Observable<byte[]> keys) {
     return get(lmdb.internalReadTx(), mapper, keys);
   }
 
+  /**
+   * Allow zero copy transformation of the resulting values.
+   *
+   * @see RxDB#get(Observable)
+   */
   public <T> Observable<T> get(RxTx tx, DirectMapper<T> mapper, Observable<byte[]> keys) {
     return keys.flatMap(key -> {
       try {
@@ -136,10 +175,17 @@ public class RxDB {
     return scan(defaultBuffer, lmdb.internalReadTx(), scan);
   }
 
+  /**
+   * Forward scan the database with a configurable buffer size and the
+   * ability to zero copy transformation of the resulting values.
+   */
   public <T> Observable<List<T>> scan(int buffer, DirectMapper<T> mapper) {
     return scan(buffer, lmdb.internalReadTx(), mapper);
   }
 
+  /**
+   * Scan multiple ranges of kvs in parallel.
+   */
   public Observable<List<KeyValue>> scan(KeyRange... ranges) {
     return scan(defaultBuffer, lmdb.internalReadTx(), KV_MAPPER, ranges);
   }
@@ -290,6 +336,7 @@ public class RxDB {
             try {
               db.put(tx, kv.key, kv.value, 0);
             } catch (Throwable e) {
+              // log error, swallow exception and proceed to next kv
               logger().error("Batch put error.", e);
             }
           }

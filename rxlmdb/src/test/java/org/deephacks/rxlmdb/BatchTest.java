@@ -9,6 +9,7 @@ import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.core.Is.is;
@@ -33,7 +34,7 @@ public class BatchTest {
   @Test
   public void testBatch() throws InterruptedException {
     AtomicInteger counter = new AtomicInteger();
-    db.batch(burst(counter));
+    db.batch(burst(counter).buffer(100, TimeUnit.MILLISECONDS, 10));
     Thread.sleep(1000);
     List<KeyValue> list = db.scan(KeyRange.forward()).toBlocking().first();
     assertThat(list.size(), is(counter.get()));
@@ -47,7 +48,7 @@ public class BatchTest {
   @Test
   public void testBatchSingleError() throws InterruptedException {
     PublishSubject<KeyValue> subject = PublishSubject.create();
-    db.batch(subject.observeOn(Schedulers.newThread()));
+    db.batch(subject.observeOn(Schedulers.newThread()).buffer(100, TimeUnit.MILLISECONDS, 10));
     subject.onNext(Fixture.values[0]);
     subject.onNext(null);
     subject.onNext(Fixture.values[2]);

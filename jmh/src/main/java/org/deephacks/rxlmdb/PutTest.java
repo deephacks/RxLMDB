@@ -2,8 +2,8 @@ package org.deephacks.rxlmdb;
 
 import org.openjdk.jmh.annotations.*;
 import rx.Observable;
-import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
+import rx.subjects.SerializedSubject;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,23 +16,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Thread)
 @Measurement(iterations = 5)
-@Warmup(iterations = 10)
-@Fork(value = 2)
+@Warmup(iterations = 5)
+@Fork(value = 1)
 @Threads(value = 12)
 public class PutTest {
 
   static RxDB db;
   static RxLMDB lmdb;
+  static SerializedSubject<KeyValue, KeyValue> subject;
 
   static {
-    Path path = Paths.get("/tmp/rxlmdb-jmh-BatchTest");
     try {
+      Path path = Paths.get("/tmp/rxlmdb-jmh-BatchTest");
       Files.createDirectories(path);
       lmdb = RxLMDB.builder().path(path).size(ByteUnit.GIGA, 1).build();
       db = RxDB.builder().lmdb(lmdb).build();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    subject = PublishSubject.<KeyValue>create().toSerialized();
+    db.batch(subject.buffer(10, TimeUnit.NANOSECONDS, 4096));
   }
 
   @State(Scope.Thread)
@@ -58,7 +61,7 @@ public class PutTest {
       new KeyValue(_8, _8),
       new KeyValue(_9, _9)
     };
-    
+
     public static final Observable[] observables = new Observable[]{
       Observable.just(values[0]),
       Observable.just(values[1]),
@@ -72,16 +75,14 @@ public class PutTest {
     };
 
     RxTx tx = null;
-    PublishSubject<KeyValue> subject;
     AtomicInteger counter = new AtomicInteger();
 
     public RxThread() {
-      subject = PublishSubject.create();
-      db.batch(subject.onBackpressureBuffer().observeOn(Schedulers.io()));
     }
 
     public void batch() {
-      subject.onNext(values[counter.incrementAndGet() % 9]);
+      int i = counter.incrementAndGet();
+      subject.onNext(values[i % 9]);
     }
 
     public void put() {

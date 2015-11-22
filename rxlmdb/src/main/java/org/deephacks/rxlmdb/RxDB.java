@@ -22,7 +22,6 @@ import rx.exceptions.OnErrorFailedException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public class RxDB {
   /** copy by default */
@@ -56,9 +55,9 @@ public class RxDB {
     put(tx, values, true);
   }
 
-  public void batch(Observable<KeyValue> values) {
+  public void batch(Observable<List<KeyValue>> values) {
     BatchSubscriber putSubscriber = new BatchSubscriber(this);
-    values.buffer(100, TimeUnit.MILLISECONDS, 512).subscribe(putSubscriber);
+    values.subscribe(putSubscriber);
   }
 
   private void put(RxTx tx, Observable<KeyValue> values, boolean append) {

@@ -197,7 +197,7 @@ ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  op
   
 ```
 
-The write amplification of LMDB's copy-on-write approach can sometimes become expensive. So for higher throughput writes RxLMDB provide batching methods that commit asynchronously. Remember to use a ```SerializedSubject``` if multiple threads are writing concurrently.
+The write amplification of LMDB's copy-on-write approach can sometimes become expensive. So for higher throughput writes RxLMDB provide batching methods that commit asynchronously which is very effecient for infinite data streams. Remember to use a ```SerializedSubject``` if multiple threads are writing concurrently. 
 
 ```java
 SerializedSubject<KeyValue, KeyValue> subject = PublishSubject.<KeyValue>create().toSerialized();

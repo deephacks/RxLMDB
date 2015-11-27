@@ -16,12 +16,12 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class BatchTest {
-  RxDB db;
-  RxLMDB lmdb;
+  RxDb db;
+  RxLmdb lmdb;
 
   @Before
   public void before() {
-    lmdb = RxLMDB.tmp();
+    lmdb = RxLmdb.tmp();
     db = lmdb.dbBuilder().build();
   }
 

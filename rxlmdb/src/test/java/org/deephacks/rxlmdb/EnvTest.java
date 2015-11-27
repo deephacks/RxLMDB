@@ -10,11 +10,11 @@ import java.util.UUID;
 import static com.google.common.truth.Truth.assertThat;
 
 public class EnvTest {
-  RxDB db;
+  RxDb db;
 
   @Before
   public void before() {
-    db = RxDB.tmp();
+    db = RxDb.tmp();
   }
 
   @After
@@ -39,7 +39,7 @@ public class EnvTest {
   @Test
   public void testPath() {
     String tmp = IoUtil.TMP_DIR + UUID.randomUUID().toString();
-    RxLMDB lmdb = RxLMDB.builder().path(tmp).build();
+    RxLmdb lmdb = RxLmdb.builder().path(tmp).build();
     Path path = lmdb.getPath();
     assertThat(path.toString()).isEqualTo(tmp);
   }
@@ -47,7 +47,7 @@ public class EnvTest {
   @Test
   public void tesAllEnv() {
     String tmp = IoUtil.TMP_DIR + UUID.randomUUID().toString();
-    RxLMDB.builder()
+    RxLmdb.builder()
       .path(tmp)
       .fixedmap()
       .mapAsync()

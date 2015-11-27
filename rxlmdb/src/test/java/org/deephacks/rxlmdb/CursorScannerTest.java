@@ -14,11 +14,11 @@ import static org.deephacks.rxlmdb.Fixture.*;
 import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 
 public class CursorScannerTest {
-  RxDB db;
+  RxDb db;
 
   @Before
   public void before() {
-    db = RxDB.tmp();
+    db = RxDb.tmp();
     db.put(Observable.from(_1_to_9));
   }
 

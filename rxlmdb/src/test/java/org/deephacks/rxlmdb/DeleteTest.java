@@ -16,12 +16,12 @@ import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 import static org.junit.Assert.assertTrue;
 
 public class DeleteTest {
-  RxDB db;
-  RxLMDB lmdb;
+  RxDb db;
+  RxLmdb lmdb;
 
   @Before
   public void before() {
-    lmdb = RxLMDB.tmp();
+    lmdb = RxLmdb.tmp();
     db = lmdb.dbBuilder().build();
   }
 

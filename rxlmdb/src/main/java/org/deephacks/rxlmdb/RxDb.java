@@ -23,16 +23,16 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 
-public class RxDB {
+public class RxDb {
   /** copy by default */
   final DirectMapper.KeyValueMapper KV_MAPPER = new DirectMapper.KeyValueMapper();
-  final RxLMDB lmdb;
+  final RxLmdb lmdb;
   final Database db;
   final String name;
   final Scheduler scheduler;
   final int defaultBuffer = 512;
 
-  private RxDB(Builder builder) {
+  private RxDb(Builder builder) {
     this.lmdb = builder.lmdb;
     this.name = Optional.ofNullable(builder.name).orElse("default");
     this.db = lmdb.env.openDatabase(this.name);
@@ -50,14 +50,14 @@ public class RxDB {
   /**
    * Same as regular put but the user is in charge of the transaction.
    *
-   * @see RxDB#put(Observable)
+   * @see RxDb#put(Observable)
    */
   public void put(RxTx tx, Observable<KeyValue> values) {
     put(tx, values, false);
   }
 
   /**
-   * @see RxDB#append(RxTx, Observable)
+   * @see RxDb#append(RxTx, Observable)
    */
   public void append(Observable<KeyValue> values) {
     append(lmdb.internalWriteTx(), values);
@@ -96,7 +96,7 @@ public class RxDB {
   }
 
   /**
-   * @see RxDB#get(Observable)
+   * @see RxDb#get(Observable)
    */
   public Observable<KeyValue> get(RxTx tx, Observable<byte[]> keys) {
     return get(tx, KV_MAPPER, keys);
@@ -105,7 +105,7 @@ public class RxDB {
   /**
    * Allow zero copy transformation of the resulting values.
    *
-   * @see RxDB#get(Observable)
+   * @see RxDb#get(Observable)
    */
   public <T> Observable<T> get(DirectMapper<T> mapper, Observable<byte[]> keys) {
     return get(lmdb.internalReadTx(), mapper, keys);
@@ -114,7 +114,7 @@ public class RxDB {
   /**
    * Allow zero copy transformation of the resulting values.
    *
-   * @see RxDB#get(Observable)
+   * @see RxDb#get(Observable)
    */
   public <T> Observable<T> get(RxTx tx, DirectMapper<T> mapper, Observable<byte[]> keys) {
     return keys.flatMap(key -> {
@@ -138,7 +138,7 @@ public class RxDB {
   }
 
   /**
-   * @see org.deephacks.rxlmdb.RxDB#delete(RxTx)
+   * @see RxDb#delete(RxTx)
    */
   public void delete() {
     delete(lmdb.internalWriteTx());
@@ -158,7 +158,7 @@ public class RxDB {
   }
 
   /**
-   * @see org.deephacks.rxlmdb.RxDB#delete(RxTx, Observable)
+   * @see RxDb#delete(RxTx, Observable)
    */
   public void delete(Observable<byte[]> keys) {
     delete(lmdb.internalWriteTx(), keys);
@@ -238,8 +238,8 @@ public class RxDB {
     return new Builder();
   }
 
-  public static RxDB tmp() {
-    return new Builder().lmdb(RxLMDB.tmp()).build();
+  public static RxDb tmp() {
+    return new Builder().lmdb(RxLmdb.tmp()).build();
   }
 
   public String getName() {
@@ -256,9 +256,9 @@ public class RxDB {
 
   public static class Builder {
     private String name;
-    private RxLMDB lmdb;
+    private RxLmdb lmdb;
 
-    public Builder lmdb(RxLMDB lmdb) {
+    public Builder lmdb(RxLmdb lmdb) {
       this.lmdb = lmdb;
       return this;
     }
@@ -268,8 +268,8 @@ public class RxDB {
       return this;
     }
 
-    public RxDB build() {
-      return new RxDB(this);
+    public RxDb build() {
+      return new RxDb(this);
     }
   }
 
@@ -278,7 +278,7 @@ public class RxDB {
     final Database db;
     final boolean append;
 
-    private PutSubscriber(RxDB db, RxTx tx, boolean append) {
+    private PutSubscriber(RxDb db, RxTx tx, boolean append) {
       this.tx = tx;
       this.db = db.db;
       this.append = append;
@@ -311,7 +311,7 @@ public class RxDB {
     final Database db;
     final Env env;
 
-    private BatchSubscriber(RxDB db) {
+    private BatchSubscriber(RxDb db) {
       this.env = db.lmdb.env;
       this.db = db.db;
     }
@@ -352,7 +352,7 @@ public class RxDB {
     final RxTx tx;
     final Database db;
 
-    private DeleteSubscriber(RxDB db, RxTx tx) {
+    private DeleteSubscriber(RxDb db, RxTx tx) {
       this.tx = tx;
       this.db = db.db;
     }

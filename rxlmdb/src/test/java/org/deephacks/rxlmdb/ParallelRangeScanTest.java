@@ -13,11 +13,11 @@ import static org.deephacks.rxlmdb.Fixture.*;
 import static org.junit.Assert.assertTrue;
 
 public class ParallelRangeScanTest {
-  RxDB db;
+  RxDb db;
 
   @Before
   public void before() {
-    db = RxDB.tmp();
+    db = RxDb.tmp();
     db.put(Observable.from(_1_to_9));
   }
 

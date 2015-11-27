@@ -13,11 +13,11 @@ import static org.deephacks.rxlmdb.Fixture._1_to_9;
 import static org.deephacks.rxlmdb.Fixture.*;
 
 public class GetTest {
-  RxDB db;
+  RxDb db;
 
   @Before
   public void before() {
-    db = RxDB.tmp();
+    db = RxDb.tmp();
     db.put(Observable.from(_1_to_9));
   }
 

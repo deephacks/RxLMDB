@@ -21,13 +21,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-public class RxLMDB {
+public class RxLmdb {
   final Env env;
   final Path path;
   final Scheduler scheduler;
   final int flags;
 
-  private RxLMDB(Builder builder) {
+  private RxLmdb(Builder builder) {
     this.env = new Env();
     Optional.ofNullable(builder.size)
       .ifPresent(size -> this.env.setMapSize(size));
@@ -51,7 +51,7 @@ public class RxLMDB {
   /**
    * Creates an environment of 64MB in a temporary location.
    */
-  public static RxLMDB tmp() {
+  public static RxLmdb tmp() {
     return new Builder()
       .size(ByteUnit.MEGA, 64)
       .maxDbs(12)
@@ -98,8 +98,8 @@ public class RxLMDB {
     return new RxTx(env.createWriteTransaction(), false);
   }
 
-  RxDB.Builder dbBuilder() {
-    return RxDB.builder().lmdb(this);
+  RxDb.Builder dbBuilder() {
+    return RxDb.builder().lmdb(this);
   }
 
   public static class Builder {
@@ -190,8 +190,8 @@ public class RxLMDB {
       return this;
     }
 
-    public RxLMDB build() {
-      return new RxLMDB(this);
+    public RxLmdb build() {
+      return new RxLmdb(this);
     }
   }
 }

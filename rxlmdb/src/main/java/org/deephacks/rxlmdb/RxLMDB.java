@@ -98,6 +98,10 @@ public class RxLMDB {
     return new RxTx(env.createWriteTransaction(), false);
   }
 
+  RxDB.Builder dbBuilder() {
+    return RxDB.builder().lmdb(this);
+  }
+
   public static class Builder {
     private Path path;
     private long size;

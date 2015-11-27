@@ -22,7 +22,7 @@ public class DeleteTest {
   @Before
   public void before() {
     lmdb = RxLMDB.tmp();
-    db = RxDB.builder().lmdb(lmdb).build();
+    db = lmdb.dbBuilder().build();
   }
 
   @After

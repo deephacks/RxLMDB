@@ -15,6 +15,7 @@ import static org.deephacks.rxlmdb.Fixture.*;
 import static org.deephacks.rxlmdb.Fixture.__3;
 import static org.deephacks.rxlmdb.Fixture.values;
 import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 public class PutTest {
@@ -47,6 +48,12 @@ public class PutTest {
       db.put(tx, Observable.from(_1_to_9));
     }
     db.scan(KeyRange.forward()).toBlocking().first();
+  }
+
+  @Test
+  public void testPut() {
+    db.put(Fixture.values[0]);
+    assertArrayEquals(db.get(__1), __1);
   }
 
   @Test

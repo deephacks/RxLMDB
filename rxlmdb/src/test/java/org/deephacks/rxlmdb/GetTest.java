@@ -33,6 +33,7 @@ public class GetTest {
       .collect(Collectors.toList());
     assertThat(result).hasSize(1);
     assertThat(result.get(0).key).isEqualTo(__1);
+    assertThat(db.get(__1)).isEqualTo(__1);
   }
 
   @Test

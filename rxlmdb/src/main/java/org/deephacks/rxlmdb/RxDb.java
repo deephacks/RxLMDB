@@ -47,6 +47,14 @@ public class RxDb {
     put(lmdb.internalWriteTx(), values);
   }
 
+  public void put(KeyValue kv) {
+    db.put(kv.key, kv.value);
+  }
+
+  public void put(RxTx tx, KeyValue kv) {
+    db.put(tx.tx, kv.key, kv.value);
+  }
+
   /**
    * Same as regular put but the user is in charge of the transaction.
    *
@@ -70,6 +78,14 @@ public class RxDb {
    */
   public void append(RxTx tx, Observable<KeyValue> values) {
     put(tx, values, true);
+  }
+
+  public void append(RxTx tx, KeyValue kv) {
+    db.put(tx.tx, kv.key, kv.value, Constants.APPEND);
+  }
+
+  public void append(KeyValue kv) {
+    db.put(kv.key, kv.value, Constants.APPEND);
   }
 
   /**
@@ -137,6 +153,14 @@ public class RxDb {
     });
   }
 
+  public byte[] get(byte[] key) {
+    return db.get(key);
+  }
+
+  public byte[] get(RxTx tx, byte[] key) {
+    return db.get(tx.tx, key);
+  }
+
   /**
    * @see RxDb#delete(RxTx)
    */
@@ -173,6 +197,14 @@ public class RxDb {
 
   public <T> Observable<List<T>> scan(DirectMapper<T> scan) {
     return scan(defaultBuffer, lmdb.internalReadTx(), scan);
+  }
+
+  public boolean delete(byte[] key) {
+    return db.delete(key);
+  }
+
+  public boolean delete(RxTx tx, byte[] key) {
+    return db.delete(tx.tx, key);
   }
 
   /**

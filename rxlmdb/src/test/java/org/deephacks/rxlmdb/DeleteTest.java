@@ -76,6 +76,8 @@ public class DeleteTest {
     db.put(Observable.from(_1_to_9));
     db.delete(Observable.from(Arrays.asList(__2, __3)));
     assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(7L);
+    db.delete(__4);
+    assertThat(toStreamBlocking(db.scan(KeyRange.forward())).count()).isEqualTo(6L);
   }
 
   @Test

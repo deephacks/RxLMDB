@@ -21,16 +21,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Threads(value = 12)
 public class PutTest {
 
-  static RxDB db;
-  static RxLMDB lmdb;
+  static RxDb db;
+  static RxLmdb lmdb;
   static SerializedSubject<KeyValue, KeyValue> subject;
 
   static {
     try {
       Path path = Paths.get("/tmp/rxlmdb-jmh-BatchTest");
       Files.createDirectories(path);
-      lmdb = RxLMDB.builder().path(path).size(ByteUnit.GIGA, 1).build();
-      db = RxDB.builder().lmdb(lmdb).build();
+      lmdb = RxLmdb.builder().path(path).size(ByteUnit.GIGA, 1).build();
+      db = RxDb.builder().lmdb(lmdb).build();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

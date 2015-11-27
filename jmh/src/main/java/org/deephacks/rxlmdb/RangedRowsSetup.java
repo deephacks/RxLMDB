@@ -15,8 +15,8 @@ import java.nio.file.Paths;
 import java.util.function.Function;
 
 public class RangedRowsSetup {
-  public RxDB db;
-  public RxLMDB lmdb;
+  public RxDb db;
+  public RxLmdb lmdb;
   public KeyRange[] keyRanges = new KeyRange[16];
 
   public static User[] PROTO = new User[10];
@@ -86,8 +86,8 @@ public class RangedRowsSetup {
     Path path = Paths.get("/tmp/rxlmdb-jmh-" + testcase.getSimpleName());
     try {
       Files.createDirectories(path);
-      lmdb = RxLMDB.builder().path(path).size(ByteUnit.GIGA, 1).build();
-      db = RxDB.builder().lmdb(lmdb).build();
+      lmdb = RxLmdb.builder().path(path).size(ByteUnit.GIGA, 1).build();
+      db = RxDb.builder().lmdb(lmdb).build();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

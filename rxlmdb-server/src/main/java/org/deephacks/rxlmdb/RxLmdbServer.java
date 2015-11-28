@@ -1,4 +1,4 @@
 package org.deephacks.rxlmdb;
 
-public class RxLMDBServer {
+public class RxLmdbServer {
 }

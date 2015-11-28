@@ -98,7 +98,7 @@ public class RxLmdb {
     return new RxTx(env.createWriteTransaction(), false);
   }
 
-  RxDb.Builder dbBuilder() {
+  public RxDb.Builder dbBuilder() {
     return RxDb.builder().lmdb(this);
   }
 

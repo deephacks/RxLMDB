@@ -16,7 +16,7 @@
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni</artifactId>
-      <version>0.4.4</version>
+      <version>${lmdbjni-version}</version>
     </dependency>
     <dependency>
       <groupId>io.reactivex</groupId>

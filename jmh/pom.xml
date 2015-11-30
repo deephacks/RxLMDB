@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni-linux64</artifactId>
-      <version>0.4.2</version>
+      <version>${lmdbjni-version}</version>
     </dependency>
     <dependency>
       <groupId>uk.co.real-logic</groupId>

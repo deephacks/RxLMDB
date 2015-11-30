@@ -51,6 +51,11 @@
     </developer>
   </developers>
 
+  <properties>
+    <lmdbjni-version>0.4.5</lmdbjni-version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <modules>
     <module>rxlmdb</module>
     <module>rxlmdb-client</module>
@@ -137,7 +142,7 @@
     <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni-linux64</artifactId>
-      <version>0.4.4</version>
+      <version>${lmdbjni-version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

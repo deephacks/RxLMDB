@@ -10,6 +10,7 @@
   <description>LMDB for RxJava</description>
   <url>http://rxlmdb.deephacks.org</url>
   <inceptionYear>2015</inceptionYear>
+
   <mailingLists>
     <mailingList>
       <name>Development List</name>
@@ -20,16 +21,19 @@
       <post>rxlmdb-user@googlegroups.com</post>
     </mailingList>
   </mailingLists>
+
   <issueManagement>
     <system>github</system>
     <url>https://github.com/deephacks/RxLMDB/issues</url>
   </issueManagement>
+
   <scm>
     <connection>scm:git:git@github.com:deephacks/RxLMDB.git</connection>
     <developerConnection>scm:git:git@github.com:deephacks/RxLMDB.git</developerConnection>
     <url>scm:git:git@github.com/deephacks/RxLMDB</url>
     <tag>HEAD</tag>
   </scm>
+
   <licenses>
     <license>
       <name>Apache License</name>
@@ -37,6 +41,7 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
   <developers>
     <developer>
       <name>Kristoffer Sjogren</name>
@@ -51,15 +56,25 @@
     </developer>
   </developers>
 
+  <repositories>
+    <repository>
+      <id>jfrog</id>
+      <url>https://oss.jfrog.org/libs-snapshot</url>
+    </repository>
+  </repositories>
+
   <properties>
     <lmdbjni-version>0.4.5</lmdbjni-version>
+    <aeron-version>0.2.2</aeron-version>
+    <reactive-streams-version>1.0.0</reactive-streams-version>
+    <rxsocket-version>0.0.1</rxsocket-version>
+    <rxsocket-aeron-version>0.0.1-20151126.205252-9</rxsocket-aeron-version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <modules>
     <module>rxlmdb</module>
-    <module>rxlmdb-client</module>
-    <module>rxlmdb-server</module>
+    <module>rxlmdb-aeron</module>
     <module>jmh</module>
   </modules>
 

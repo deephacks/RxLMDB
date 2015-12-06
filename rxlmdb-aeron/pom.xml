@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- vi:ts=2:sw=2:expandtab: -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.deephacks.rxlmdb</groupId>
+    <artifactId>rxlmdb-project</artifactId>
+    <version>0.0.4-SNAPSHOT</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>rxlmdb-aeron</artifactId>
+  <name>rxlmdb-aeron</name>
+  <packaging>jar</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.deephacks.rxlmdb</groupId>
+      <artifactId>rxlmdb</artifactId>
+      <version>0.0.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>uk.co.real-logic</groupId>
+      <artifactId>aeron-all</artifactId>
+      <version>${aeron-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reactivestreams</groupId>
+      <artifactId>reactive-streams</artifactId>
+      <version>${reactive-streams-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivesocket</groupId>
+      <artifactId>reactivesocket</artifactId>
+      <version>${rxsocket-version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>uk.co.real-logic</groupId>
+          <artifactId>Agrona</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivesocket</groupId>
+      <artifactId>reactivesocket-aeron-core</artifactId>
+      <version>${rxsocket-aeron-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivesocket</groupId>
+      <artifactId>reactivesocket-aeron-client</artifactId>
+      <version>${rxsocket-aeron-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.reactivesocket</groupId>
+      <artifactId>reactivesocket-aeron-server</artifactId>
+      <version>${rxsocket-aeron-version}</version>
+    </dependency>
+  </dependencies>
+
+</project>

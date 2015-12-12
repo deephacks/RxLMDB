@@ -7,7 +7,7 @@ RxLMDB provide a [RxJava](https://github.com/ReactiveX/RxJava) API to [LMDB](htt
 
 Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low level it make sense to raise the abstraction level to modern standards without scarifying too much (??) performance. So extending LMDB with RxJava makes it possible for asynchronous and event-based programs to process data from LMDB as sequences and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety and concurrent data structures.
 
-A remote RxJava API built on [ReactiveSocket](http://reactivesocket.io/) and [Aeron](https://github.com/real-logic/Aeron) is in progress.
+RxLMDB is also in the progress of providing a remote protocol with [Reactive Streams](http://www.reactive-streams.org/) semantics over an asynchronous, binary boundary using [ReactiveSocket](http://reactivesocket.io/) and [Aeron](https://github.com/real-logic/Aeron), which enables symmetric interaction models via async message passing over a single connection.
 
 ### Benchmark
 
@@ -187,7 +187,7 @@ ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  op
     .count().toBlocking().first();
 
   // delete
-  db.delete(Observable.just(new byte[] { 1 }));
+  db.delete(Observable.just(new byte[] { 1 })http://www.reactive-streams.org/);
   
   // delete range  
   Observable<byte[]> keys = db.scan()

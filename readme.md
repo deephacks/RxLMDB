@@ -3,11 +3,11 @@
 
 RxLMDB provide a [RxJava](https://github.com/ReactiveX/RxJava) API to [LMDB](http://symas.com/mdb/) (through [lmdbjni](https://github.com/deephacks/lmdbjni)) which is an ultra-fast, ultra-compact key-value embedded data store developed by Symas for the OpenLDAP Project. LMDB uses memory-mapped files, so it has the read performance of a pure in-memory database while still offering the persistence of standard disk-based databases. Transactional with full ACID semantics and crash-proof by design. No corruption. No startup time. Zero-config cache tuning.
 
-A remote RxJava API built on [ReactiveSocket](http://reactivesocket.io/) and [Aeron](https://github.com/real-logic/Aeron) is in progress.
-
 ### Why Rx + LMDB?
 
 Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low level it make sense to raise the abstraction level to modern standards without scarifying too much (??) performance. So extending LMDB with RxJava makes it possible for asynchronous and event-based programs to process data from LMDB as sequences and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety and concurrent data structures.
+
+A remote RxJava API built on [ReactiveSocket](http://reactivesocket.io/) and [Aeron](https://github.com/real-logic/Aeron) is in progress.
 
 ### Benchmark
 

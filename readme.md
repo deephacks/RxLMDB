@@ -187,7 +187,7 @@ ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  op
     .count().toBlocking().first();
 
   // delete
-  db.delete(Observable.just(new byte[] { 1 })http://www.reactive-streams.org/);
+  db.delete(Observable.just(new byte[] { 1 }));
   
   // delete range  
   Observable<byte[]> keys = db.scan()

@@ -3,8 +3,9 @@ package org.deephacks.rxlmdb;
 enum OpType {
   PUT(0x00),
   GET(0x01),
-  BATCH(0x02),
-  SCAN(0x03);
+  DELETE(0x02),
+  BATCH(0x03),
+  SCAN(0x04);
 
   private static OpType[] typesById;
 

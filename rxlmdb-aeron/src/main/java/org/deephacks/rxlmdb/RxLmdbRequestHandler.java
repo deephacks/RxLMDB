@@ -43,6 +43,17 @@ class RxLmdbRequestHandler extends RequestHandler implements Loggable {
         }
         s.onComplete();
       };
+    } else if (type == OpType.DELETE) {
+      return s -> {
+        byte[] key = KeyValuePayload.getByteArray(payload);
+        boolean success = db.delete(key);
+        if (success) {
+          s.onNext(new KeyValuePayload(key, OpType.DELETE));
+        } else {
+          s.onNext(Payloads.EMPTY_PAYLOAD);
+        }
+        s.onComplete();
+      };
     } else {
       logger().error("No OpType found for type {}", type);
       return s -> {
@@ -58,7 +69,9 @@ class RxLmdbRequestHandler extends RequestHandler implements Loggable {
     OpType type = OpType.values()[metadata.getInt(0)];
     if (type == OpType.SCAN) {
       return RxReactiveStreams.toPublisher(db.scan()
-        .flatMap(Observable::from)
+        .doOnError(throwable -> {
+          throwable.printStackTrace();
+        }).flatMap(Observable::from)
         .map(kv -> {
           // need to clean up the payload
           return new KeyValuePayload(kv.key, kv.value, OpType.SCAN);

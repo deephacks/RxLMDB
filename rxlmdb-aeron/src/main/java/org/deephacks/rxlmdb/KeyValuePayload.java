@@ -45,9 +45,12 @@ class KeyValuePayload implements Payload {
   }
 
   public static KeyValue getKeyValue(Payload payload) {
-    UnsafeBuffer data = new UnsafeBuffer(payload.getData());
+    ByteBuffer bb = payload.getData();
+    if (bb.capacity() == 0) {
+      return null;
+    }
+    UnsafeBuffer data = new UnsafeBuffer(bb);
     int offset = 0;
-
     int size = data.getInt(offset);
     offset += BitUtil.SIZE_OF_INT;
 
@@ -64,7 +67,11 @@ class KeyValuePayload implements Payload {
   }
 
   public static byte[] getByteArray(Payload payload) {
-    UnsafeBuffer data = new UnsafeBuffer(payload.getData());
+    ByteBuffer bb = payload.getData();
+    if (bb.capacity() == 0) {
+      return null;
+    }
+    UnsafeBuffer data = new UnsafeBuffer(bb);
     int size = data.getInt(0);
     byte[] key = new byte[size];
     data.getBytes(4, key);

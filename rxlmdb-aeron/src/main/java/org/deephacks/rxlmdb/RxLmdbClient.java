@@ -9,6 +9,7 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Optional;
 
 public class RxLmdbClient {
@@ -19,12 +20,13 @@ public class RxLmdbClient {
   private ReactiveSocket reactiveSocket;
   private AeronClientDuplexConnection connection;
   private final InetSocketAddress address;
-  private final AeronClientDuplexConnectionFactory cf = AeronClientDuplexConnectionFactory.getInstance();
+  private final AeronClientDuplexConnectionFactory cf;
 
   private RxLmdbClient(Builder builder) {
     String host = Optional.ofNullable(builder.host).orElse("localhost");
     int port =  Optional.ofNullable(builder.port).orElse(Consts.DEFAULT_PORT);
     this.address = new InetSocketAddress(host, port);
+    this.cf = AeronClientDuplexConnectionFactory.getInstance();
     cf.addSocketAddressToHandleResponses(address);
   }
 
@@ -39,6 +41,9 @@ public class RxLmdbClient {
   }
 
   public void batch(KeyValue kv) {
+    if (kv == null || kv.key == null || kv.key.length == 0) {
+      return;
+    }
     KeyValuePayload kvp = new KeyValuePayload(kv, OpType.PUT);
     RxReactiveStreams.toObservable(reactiveSocket.fireAndForget(kvp))
       .map(payload -> {
@@ -48,6 +53,9 @@ public class RxLmdbClient {
   }
 
   public Observable<Boolean> put(KeyValue kv) {
+    if (kv == null || kv.key == null || kv.key.length == 0) {
+      return Observable.just(false);
+    }
     KeyValuePayload kvp = new KeyValuePayload(kv, OpType.PUT);
     return RxReactiveStreams.toObservable(reactiveSocket.requestResponse(kvp))
       .map(payload -> {
@@ -56,7 +64,23 @@ public class RxLmdbClient {
       });
   }
 
+  public Observable<Boolean> delete(byte[] key) {
+    if (key == null || key.length == 0) {
+      return Observable.just(false);
+    }
+    KeyValuePayload kvp = new KeyValuePayload(key, OpType.DELETE);
+    return RxReactiveStreams.toObservable(reactiveSocket.requestResponse(kvp))
+      .map(payload -> {
+        kvp.release();
+        byte[] response = KeyValuePayload.getByteArray(payload);
+        return Arrays.equals(key, response);
+      });
+  }
+
   public Observable<KeyValue> get(byte[] key) {
+    if (key == null || key.length == 0) {
+      return Observable.just(null);
+    }
     KeyValuePayload kvp = new KeyValuePayload(key, OpType.GET);
     return RxReactiveStreams
       .toObservable(reactiveSocket.requestResponse(kvp))
@@ -78,7 +102,6 @@ public class RxLmdbClient {
   }
 
   public void close() throws Exception {
-    connection.close();
     reactiveSocket.close();
   }
 

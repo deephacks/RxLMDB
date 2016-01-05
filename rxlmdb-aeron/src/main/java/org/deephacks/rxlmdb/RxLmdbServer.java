@@ -8,8 +8,6 @@ import uk.co.real_logic.agrona.concurrent.NoOpIdleStrategy;
 
 import java.util.Optional;
 
-import static uk.co.real_logic.aeron.driver.MediaDriver.launch;
-
 public class RxLmdbServer {
   static {
     System.setProperty("reactivesocket.aeron.clientConcurrency", "1");
@@ -55,9 +53,8 @@ public class RxLmdbServer {
       .conductorIdleStrategy(new BackoffIdleStrategy(1, 1, 100, 1000))
       .receiverIdleStrategy(new NoOpIdleStrategy())
       .senderIdleStrategy(new NoOpIdleStrategy());
-    ctx.driverTimeoutMs(Long.MAX_VALUE);
 
-    this.mediaDriver = launch(ctx);
+    this.mediaDriver = MediaDriver.launch(ctx);
   }
 
   public void closeMediaDriver() {
@@ -65,10 +62,10 @@ public class RxLmdbServer {
   }
 
   public void close() throws Exception {
+    server.close();
     if (this.manageMediaDriver) {
       closeMediaDriver();
     }
-    server.close();
   }
 
   public static Builder builder() {

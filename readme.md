@@ -142,19 +142,22 @@ ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  op
   // get
   Observable<KeyValue> o = db.get(Observable.just(new byte[] { 1 }));
 
+  // RxJava have a hard time coping with extreme scan performance of LMDB without buffering,
+  // hence the Observable list return value from scan operations. Just flatmap away and be happy.
+
   // scan forward
-  Observable<List<KeyValue<> o = db.scan();
+  Observable<List<KeyValue<>> o = db.scan();
 
   // scan backward
-  Observable<List<KeyValue<> o = db.scan(KeyRange.backward());
+  Observable<List<KeyValue<>> o = db.scan(KeyRange.backward());
 
   // scan range forward
-  Observable<List<KeyValue<> o = db.scan(
+  Observable<List<KeyValue<>> o = db.scan(
     KeyRange.range(new byte[]{ 1 }, new byte[]{ 2 }
   );
   
   // scan range backward
-  Observable<List<KeyValue<> o = db.scan(
+  Observable<List<KeyValue<>> o = db.scan(
     KeyRange.range(new byte[]{ 2 }, new byte[]{ 1 }
   );
 

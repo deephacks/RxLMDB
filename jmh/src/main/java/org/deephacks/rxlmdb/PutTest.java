@@ -1,5 +1,6 @@
 package org.deephacks.rxlmdb;
 
+import org.fusesource.lmdbjni.ByteUnit;
 import org.openjdk.jmh.annotations.*;
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -29,7 +30,7 @@ public class PutTest {
     try {
       Path path = Paths.get("/tmp/rxlmdb-jmh-BatchTest");
       Files.createDirectories(path);
-      lmdb = RxLmdb.builder().path(path).size(ByteUnit.GIGA, 1).build();
+      lmdb = RxLmdb.builder().path(path).size(1, ByteUnit.GIBIBYTES).build();
       db = RxDb.builder().lmdb(lmdb).build();
     } catch (IOException e) {
       throw new RuntimeException(e);

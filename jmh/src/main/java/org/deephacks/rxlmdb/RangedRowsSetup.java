@@ -3,6 +3,7 @@ package org.deephacks.rxlmdb;
 import generated.proto.Address;
 import generated.proto.User;
 import okio.ByteString;
+import org.fusesource.lmdbjni.ByteUnit;
 import org.fusesource.lmdbjni.DirectBuffer;
 import rx.Observable;
 import rx.Subscriber;
@@ -86,7 +87,7 @@ public class RangedRowsSetup {
     Path path = Paths.get("/tmp/rxlmdb-jmh-" + testcase.getSimpleName());
     try {
       Files.createDirectories(path);
-      lmdb = RxLmdb.builder().path(path).size(ByteUnit.GIGA, 1).build();
+      lmdb = RxLmdb.builder().path(path).size(1, ByteUnit.GIBIBYTES).build();
       db = RxDb.builder().lmdb(lmdb).build();
     } catch (IOException e) {
       throw new RuntimeException(e);

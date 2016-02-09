@@ -53,7 +53,7 @@ public class RxLmdb {
    */
   public static RxLmdb tmp() {
     return new Builder()
-      .size(ByteUnit.MEGA, 64)
+      .size(64, ByteUnit.MEBIBYTES)
       .maxDbs(12)
       .build();
   }
@@ -120,7 +120,7 @@ public class RxLmdb {
       return this;
     }
 
-    public Builder size(ByteUnit unit, long size) {
+    public Builder size(long size, ByteUnit unit) {
       this.size = unit.toBytes(size);
       return this;
     }

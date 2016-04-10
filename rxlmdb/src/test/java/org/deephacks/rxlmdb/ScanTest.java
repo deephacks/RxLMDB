@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.deephacks.rxlmdb.Fixture.*;
+import static org.deephacks.rxlmdb.KeyRange.KeyRangeType.FOWARD_RANGE;
 import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 
 public class ScanTest {
@@ -53,8 +54,9 @@ public class ScanTest {
 
   @Test
   public void testScanOnly() {
+    byte[] startStop = new byte[] { (byte) 2 };
     LinkedList<KeyValue> expected = Fixture.range(__2, __2);
-    toStreamBlocking(db.scan(KeyRange.onlyByte(2)))
+    toStreamBlocking(db.scan(KeyRange.range(startStop, startStop)))
       .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }

@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+option java_package = "org.deephacks.rxlmdb";
+
+message Empty {}
+
+message PutMsg {
+  bytes key = 1;
+  bytes val = 2;
+}
+
+message GetMsg {
+  bytes key = 1;
+}
+
+message DeleteMsg {
+  bytes key = 1;
+}
+
+message KeyRangeMsg {
+  bytes start = 1;
+  bytes stop = 2;
+  KeyRangeType type = 3;
+}
+
+enum KeyRangeType {
+  FORWARD = 0;
+  FORWARD_START = 1;
+  FORWARD_STOP = 2;
+  FOWARD_RANGE = 3;
+  BACKWARD = 4;
+  BACKWARD_START = 5;
+  BACKWARD_STOP = 6;
+  BACKWARD_RANGE = 7;
+}
+
+message ValueMsg {
+  bytes val = 1;
+}
+
+message BooleanMsg {
+  bool value = 1;
+}
+
+message KeyValueMsg {
+  bytes key = 1;
+  bytes val = 2;
+}
+
+service DatabaseService {
+  rpc Put(PutMsg) returns (Empty);
+
+  rpc Batch(stream PutMsg) returns (Empty);
+
+  rpc Get(GetMsg) returns (ValueMsg);
+
+  rpc Delete(DeleteMsg) returns (BooleanMsg);
+
+  rpc Scan(KeyRangeMsg) returns (stream KeyValueMsg);
+}

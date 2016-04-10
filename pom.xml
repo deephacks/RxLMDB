@@ -74,7 +74,8 @@
 
   <modules>
     <module>rxlmdb</module>
-    <module>rxlmdb-aeron</module>
+    <module>rxlmdb-grpc</module>
+    <!--<module>rxlmdb-aeron</module>-->
     <module>jmh</module>
   </modules>
 

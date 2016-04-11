@@ -68,4 +68,9 @@ public class Fixture {
     return result;
   }
 
+  public static KeyValue kv(int key, int val) {
+    byte[] k = String.format("%03d", key).getBytes();
+    byte[] v = String.format("%03d", val).getBytes();
+    return new KeyValue(k, v);
+  }
 }

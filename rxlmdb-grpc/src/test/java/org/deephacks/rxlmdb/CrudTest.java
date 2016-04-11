@@ -1,8 +1,6 @@
 package org.deephacks.rxlmdb;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import rx.subjects.PublishSubject;
 import rx.subjects.SerializedSubject;
 
@@ -16,24 +14,24 @@ import static org.junit.Assert.*;
 
 public class CrudTest implements Base {
 
-  static RxDbGrpcServer server;
-  static RxDbGrpcClient client;
+  RxDbGrpcServer server;
+  RxDbGrpcClient client;
 
-  @BeforeClass
-  public static void beforeClass() throws IOException {
+  @Before
+  public void before() throws IOException {
     server = RxDbGrpcServer.builder().build();
     client = RxDbGrpcClient.builder().build();
   }
 
-  @AfterClass
-  public static void afterClass() throws Exception {
+  @After
+  public void after() throws Exception {
     client.close();
     server.close();
   }
 
   @Test
   public void testPutGetDelete() {
-    KeyValue kv1 = Fixture.kv("putGetDelete", 1);
+    KeyValue kv1 = Fixture.values[0];
     assertTrue(client.put(kv1).toBlocking().first());
     KeyValue kv2 = null;
     for (int i = 0; i < 100; i++) {
@@ -69,14 +67,14 @@ public class CrudTest implements Base {
     client.batch(subject.buffer(10, TimeUnit.NANOSECONDS, 512));
 
     for (int i = 0; i < 1000; i++) {
-      KeyValue kv = Fixture.kv("batch", i);
+      KeyValue kv = Fixture.kv(i, i);
       kvs.add(kv);
       subject.onNext(kv);
     }
     subject.onCompleted();
     Thread.sleep(1000);
 
-    List<KeyValue> list = client.scan().filter(keyPrefix("batch"))
+    List<KeyValue> list = client.scan()
       .toList().toBlocking().first();
     assertThat(list.size(), is(1000));
     for (int i = 0; i < 1000; i++) {
@@ -89,11 +87,11 @@ public class CrudTest implements Base {
   public void testScan() throws InterruptedException {
     List<KeyValue> kvs = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
-      KeyValue kv = Fixture.kv("scan", i);
+      KeyValue kv = Fixture.kv(i, i);
       kvs.add(kv);
       assertTrue(client.put(kv).toBlocking().first());
     }
-    List<KeyValue> list = client.scan().filter(keyPrefix("scan"))
+    List<KeyValue> list = client.scan()
       .toList().toBlocking().first();
     assertThat(list.size(), is(100));
     for (int i = 0; i < 100; i++) {

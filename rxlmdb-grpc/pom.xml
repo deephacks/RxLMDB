@@ -20,6 +20,13 @@
       <version>0.0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>org.deephacks.rxlmdb</groupId>
+      <artifactId>rxlmdb</artifactId>
+      <version>0.0.4-SNAPSHOT</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.deephacks.lmdbjni</groupId>
       <artifactId>lmdbjni-linux64</artifactId>
       <version>0.4.5</version>

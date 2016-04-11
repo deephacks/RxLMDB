@@ -28,7 +28,7 @@ public class ConnectivityTest implements Base {
     Path path = lmdb.getPath();
     RxDbGrpcServer server = RxDbGrpcServer.builder().lmdb(lmdb).build();
     RxDbGrpcClient client = RxDbGrpcClient.builder().build();
-    KeyValue kv = Fixture.kv("a", 1);
+    KeyValue kv = Fixture.values[0];
     try {
       client.put(kv).toBlocking().first();
       server.close();

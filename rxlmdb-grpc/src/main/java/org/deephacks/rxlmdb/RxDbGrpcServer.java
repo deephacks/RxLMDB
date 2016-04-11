@@ -27,7 +27,9 @@ public class RxDbGrpcServer {
   }
 
   public void close() throws Exception {
-    server.shutdown();
+    runQuitely(() -> db.close());
+    runQuitely(() -> lmdb.close());
+    runQuitely(() -> server.shutdown());
     server.awaitTermination();
   }
 
@@ -64,5 +66,17 @@ public class RxDbGrpcServer {
       this.db = db;
       return this;
     }
+  }
+
+  static void runQuitely(CodeBlock block) {
+    try {
+      block.execute();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+  interface CodeBlock {
+    void execute();
   }
 }

@@ -8,5 +8,11 @@ public class Fixture {
     return new KeyValue(key, val);
   }
 
+  public static KeyValue kv(long key, long val) {
+    byte[] k = String.format("key%03d", key).getBytes();
+    byte[] v = String.format("val%03d", val).getBytes();
+    return new KeyValue(k, v);
+  }
+
 
 }

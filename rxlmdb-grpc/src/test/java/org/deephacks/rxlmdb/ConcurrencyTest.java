@@ -32,9 +32,9 @@ public class ConcurrencyTest {
   @Test
   public void testMultipleThreadsWithSharedConnection() throws Exception {
     ExecutorService service = Executors.newCachedThreadPool();
-    CountDownLatch latch = new CountDownLatch(10000);
+    CountDownLatch latch = new CountDownLatch(1000);
     AtomicInteger value = new AtomicInteger();
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 1000; i++) {
       service.execute(() -> {
         int k = value.incrementAndGet();
         client.put(Fixture.kv(k, k)).toBlocking().first();
@@ -43,16 +43,16 @@ public class ConcurrencyTest {
     }
     latch.await();
     Integer count = client.scan().count().toBlocking().first();
-    assertThat(count, is(10000));
+    assertThat(count, is(1000));
   }
 
   @Test
   public void testMultipleThreadsWithSeparateConnections() throws Exception {
     RxDbGrpcClient client2 = RxDbGrpcClient.builder().build();
     ExecutorService service = Executors.newCachedThreadPool();
-    CountDownLatch latch = new CountDownLatch(10000);
+    CountDownLatch latch = new CountDownLatch(1000);
     AtomicInteger value = new AtomicInteger();
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 1000; i++) {
       service.execute(() -> {
         int k = value.incrementAndGet();
         if (k % 2 == 0) {
@@ -65,7 +65,7 @@ public class ConcurrencyTest {
     }
     latch.await();
     Integer count = client.scan().count().toBlocking().first();
-    assertThat(count, is(10000));
+    assertThat(count, is(1000));
     client2.close();
   }
 }

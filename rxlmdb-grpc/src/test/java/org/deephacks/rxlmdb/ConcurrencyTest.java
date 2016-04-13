@@ -16,22 +16,24 @@ import static org.junit.Assert.assertThat;
 public class ConcurrencyTest {
   RxDbGrpcServer server;
   RxDbGrpcClient client = RxDbGrpcClient.builder().build();
+  ExecutorService service;
 
   @Before
   public void before() throws IOException {
-    server =  RxDbGrpcServer.builder().build();
+    server = RxDbGrpcServer.builder().build();
     client = RxDbGrpcClient.builder().build();
+    service = Executors.newCachedThreadPool();
   }
 
   @After
   public void after() throws Exception {
     client.close();
     server.close();
+    service.shutdownNow();
   }
 
   @Test
   public void testMultipleThreadsWithSharedConnection() throws Exception {
-    ExecutorService service = Executors.newCachedThreadPool();
     CountDownLatch latch = new CountDownLatch(1000);
     AtomicInteger value = new AtomicInteger();
     for (int i = 0; i < 1000; i++) {
@@ -49,17 +51,13 @@ public class ConcurrencyTest {
   @Test
   public void testMultipleThreadsWithSeparateConnections() throws Exception {
     RxDbGrpcClient client2 = RxDbGrpcClient.builder().build();
-    ExecutorService service = Executors.newCachedThreadPool();
     CountDownLatch latch = new CountDownLatch(1000);
     AtomicInteger value = new AtomicInteger();
     for (int i = 0; i < 1000; i++) {
       service.execute(() -> {
         int k = value.incrementAndGet();
-        if (k % 2 == 0) {
-          client.put(Fixture.kv(k, k)).toBlocking().first();
-        } else {
-          client2.put(Fixture.kv(k, k)).toBlocking().first();
-        }
+        RxDbGrpcClient flipFlop = k % 2 == 0 ? client : client2;
+        flipFlop.put(Fixture.kv(k, k)).toBlocking().first();
         latch.countDown();
       });
     }

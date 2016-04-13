@@ -11,7 +11,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class ConnectivityTest implements Base {
+public class ConnectivityTest {
 
   @Test
   public void testConnectClose() throws Exception {

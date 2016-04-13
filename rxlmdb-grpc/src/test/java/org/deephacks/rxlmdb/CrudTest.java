@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
-public class CrudTest implements Base {
+public class CrudTest {
 
   RxDbGrpcServer server;
   RxDbGrpcClient client;

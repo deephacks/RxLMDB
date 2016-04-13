@@ -54,12 +54,12 @@ public class Fixture {
     LinkedList<KeyValue> result;
     if (DirectBufferComparator.compareTo(start, stop) < 0) {
       result = _1_to_9.stream()
-        .filter(b -> DirectBufferComparator.within(b.key, start, stop))
+        .filter(b -> DirectBufferComparator.within(b.key(), start, stop))
         .collect(Collectors.toCollection(LinkedList::new));
 
     } else {
       result = _9_to_1.stream()
-        .filter(b -> DirectBufferComparator.within(b.key, stop, start))
+        .filter(b -> DirectBufferComparator.within(b.key(), stop, start))
         .collect(Collectors.toCollection(LinkedList::new));
     }
     if (result.isEmpty()) {

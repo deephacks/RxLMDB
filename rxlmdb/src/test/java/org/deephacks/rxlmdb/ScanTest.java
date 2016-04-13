@@ -31,7 +31,7 @@ public class ScanTest {
   public void testScanRangeForward() {
     LinkedList<KeyValue> expected = Fixture.range(__2, __3);
     toStreamBlocking(db.scan(KeyRange.range(_2, _3)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -47,7 +47,7 @@ public class ScanTest {
   public void testScanSingleRange() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __1);
     toStreamBlocking(db.scan(KeyRange.range(_1, _1)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -56,7 +56,7 @@ public class ScanTest {
     byte[] startStop = new byte[] { (byte) 2 };
     LinkedList<KeyValue> expected = Fixture.range(__2, __2);
     toStreamBlocking(db.scan(KeyRange.range(startStop, startStop)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -64,7 +64,7 @@ public class ScanTest {
   public void testScanRangeBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __2);
     toStreamBlocking(db.scan(KeyRange.range(_3, _2)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -72,7 +72,7 @@ public class ScanTest {
   public void testScanAtLeast() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __9);
     toStreamBlocking(db.scan(KeyRange.atLeast(_3)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -80,7 +80,7 @@ public class ScanTest {
   public void testScanAtLeastBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __1);
     toStreamBlocking(db.scan(KeyRange.atLeastBackward(__3)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -88,7 +88,7 @@ public class ScanTest {
   public void testScanAtMost() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __4);
     toStreamBlocking(db.scan(KeyRange.atMost(_4)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -96,7 +96,7 @@ public class ScanTest {
   public void testScanAtMostBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __4);
     toStreamBlocking(db.scan(KeyRange.atMostBackward(_4)))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -104,7 +104,7 @@ public class ScanTest {
   public void testScanForward() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -113,8 +113,8 @@ public class ScanTest {
     LinkedList<KeyValue> expected = Fixture.range(__1, __6);
     toStreamBlocking(db.scan(1, KeyRange.forward()).takeWhile(kvs -> {
       assertThat(kvs.size()).isEqualTo(1);
-      byte[] key = expected.pollFirst().key;
-      assertThat(key).isEqualTo(kvs.get(0).key);
+      byte[] key = expected.pollFirst().key();
+      assertThat(key).isEqualTo(kvs.get(0).key());
       return key[0] < 6;
     }));
     assertThat(expected).isEqualTo(new LinkedList<>());
@@ -127,10 +127,10 @@ public class ScanTest {
       KeyValue kv = null;
       for (int i = 0; i < kvs.size(); i++) {
         kv = kvs.get(i);
-        if (kv.key[0] > 6) {
+        if (kv.key()[0] > 6) {
           return false;
         }
-        assertThat(kv.key).isEqualTo(expected.pollFirst().key);
+        assertThat(kv.key()).isEqualTo(expected.pollFirst().key());
       }
       return true;
     }));
@@ -141,7 +141,7 @@ public class ScanTest {
   public void testScanBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __1);
     toStreamBlocking(db.scan(KeyRange.backward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -150,8 +150,8 @@ public class ScanTest {
     LinkedList<KeyValue> expected = Fixture.range(__9, __6);
     toStreamBlocking(db.scan(1, KeyRange.backward()).takeWhile(kvs -> {
       assertThat(kvs.size()).isEqualTo(1);
-      byte[] key = expected.pollFirst().key;
-      assertThat(key).isEqualTo(kvs.get(0).key);
+      byte[] key = expected.pollFirst().key();
+      assertThat(key).isEqualTo(kvs.get(0).key());
       return key[0] > 6;
     }));
     assertThat(expected).isEqualTo(new LinkedList<>());
@@ -164,10 +164,10 @@ public class ScanTest {
       KeyValue kv = null;
       for (int i = 0; i < kvs.size(); i++) {
         kv = kvs.get(i);
-        if (kv.key[0] < 6) {
+        if (kv.key()[0] < 6) {
           return false;
         }
-        assertThat(kv.key).isEqualTo(expected.pollFirst().key);
+        assertThat(kv.key()).isEqualTo(expected.pollFirst().key());
       }
       return true;
     }));
@@ -183,7 +183,7 @@ public class ScanTest {
   public void testScanMapper() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan((key, value) -> key.getByte(0)))
-      .forEach(k -> assertThat(expected.pollFirst().key[0]).isEqualTo(k));
+      .forEach(k -> assertThat(expected.pollFirst().key()[0]).isEqualTo(k));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 

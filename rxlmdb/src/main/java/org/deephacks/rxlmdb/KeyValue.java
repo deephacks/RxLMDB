@@ -20,47 +20,67 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 
 public class KeyValue {
-  public final byte[] key;
-  public final byte[] value;
+  private final byte[] key;
+  private final byte[] value;
+
+  private final DirectBuffer keyBuffer;
+  private final DirectBuffer valueBuffer;
 
   KeyValue(Entry entry) {
+    if (entry == null) {
+      throw new NullPointerException();
+    }
+    if (entry.getKey() == null) {
+      throw new NullPointerException();
+    }
+    if (entry.getValue() == null) {
+      throw new NullPointerException();
+    }
     this.key = entry.getKey();
     this.value = entry.getValue();
+    this.keyBuffer = null;
+    this.valueBuffer = null;
   }
 
   public KeyValue(byte[] key, byte[] value) {
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (value == null) {
+      throw new NullPointerException();
+    }
     this.key = key;
     this.value = value;
+    this.valueBuffer = null;
+    this.keyBuffer = null;
   }
 
   public KeyValue(DirectBuffer key, DirectBuffer value) {
-    byte[] k = new byte[key.capacity()];
-    key.getBytes(0, k);
-    byte[] v = new byte[value.capacity()];
-    value.getBytes(0, v);
-    this.key = k;
-    this.value = v;
+    if (key == null) {
+      throw new NullPointerException();
+    }
+    if (value == null) {
+      throw new NullPointerException();
+    }
+    this.keyBuffer = key;
+    this.valueBuffer = value;
+    this.key = null;
+    this.value = null;
   }
 
-  public byte getKeyByte(int pos) {
-    return key[pos];
+  public byte[] key() {
+    return key;
   }
 
-  public short getKeyShort(int pos) {
-    return new DirectBuffer(key).getShort(pos, ByteOrder.BIG_ENDIAN);
+  public byte[] value() {
+    return value;
   }
 
-  public int getKeyInt(int pos) {
-    return new DirectBuffer(key).getInt(pos, ByteOrder.BIG_ENDIAN);
+  public DirectBuffer keyBuffer() {
+    return keyBuffer;
   }
 
-  public long getKeyLong(int pos) {
-    return new DirectBuffer(key).getLong(pos, ByteOrder.BIG_ENDIAN);
-  }
-
-  @Override
-  public String toString() {
-    return "KeyValue{" + "key=" + Arrays.toString(key) +
-      ", value=" + Arrays.toString(value) + '}';
+  public DirectBuffer valueBuffer() {
+    return valueBuffer;
   }
 }

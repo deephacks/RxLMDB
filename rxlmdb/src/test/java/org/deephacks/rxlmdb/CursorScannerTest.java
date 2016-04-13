@@ -34,7 +34,7 @@ public class CursorScannerTest {
     toStreamBlocking(db.cursor((cursor, subscriber) ->  {
       cursor.first();
       subscriber.onNext(cursor.keyBytes());
-    })).forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
+    })).forEach(key -> assertThat(expected.pollFirst().key()).isEqualTo(key));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 

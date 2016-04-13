@@ -31,7 +31,7 @@ public class ScanTest {
   public void testScanRangeForward() {
     LinkedList<KeyValue> expected = Fixture.range(__2, __3);
     client.scan(KeyRange.range(_2, _3)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -45,7 +45,7 @@ public class ScanTest {
   public void testScanSingleRange() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __1);
     client.scan(KeyRange.range(_1, _1)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -54,7 +54,7 @@ public class ScanTest {
     byte[] startStop = new byte[] { (byte) 2 };
     LinkedList<KeyValue> expected = Fixture.range(__2, __2);
     client.scan(KeyRange.range(startStop, startStop)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -62,7 +62,7 @@ public class ScanTest {
   public void testScanRangeBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __2);
     client.scan(KeyRange.range(_3, _2)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -70,7 +70,7 @@ public class ScanTest {
   public void testScanAtLeast() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __9);
     client.scan(KeyRange.atLeast(_3)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -78,7 +78,7 @@ public class ScanTest {
   public void testScanAtLeastBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__3, __1);
     client.scan(KeyRange.atLeastBackward(__3)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -86,7 +86,7 @@ public class ScanTest {
   public void testScanAtMost() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __4);
     client.scan(KeyRange.atMost(_4)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -94,7 +94,7 @@ public class ScanTest {
   public void testScanAtMostBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __4);
     client.scan(KeyRange.atMostBackward(_4)).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -102,7 +102,7 @@ public class ScanTest {
   public void testScanForward() {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     client.scan(KeyRange.forward()).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -110,8 +110,8 @@ public class ScanTest {
   public void testScanForwardUnsubscribe() throws InterruptedException {
     LinkedList<KeyValue> expected = Fixture.range(__1, __6);
     client.scan(KeyRange.forward()).takeWhile(kv -> {
-      byte[] key = expected.pollFirst().key;
-      assertThat(key).isEqualTo(kv.key);
+      byte[] key = expected.pollFirst().key();
+      assertThat(key).isEqualTo(kv.key());
       return key[0] < 6;
     }).toBlocking().last();
     assertThat(expected).isEqualTo(new LinkedList<>());
@@ -122,7 +122,7 @@ public class ScanTest {
   public void testScanBackward() {
     LinkedList<KeyValue> expected = Fixture.range(__9, __1);
     client.scan(KeyRange.backward()).toBlocking()
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -130,8 +130,8 @@ public class ScanTest {
   public void testScanBackwardUnsubscribe() throws InterruptedException {
     LinkedList<KeyValue> expected = Fixture.range(__9, __6);
     client.scan(KeyRange.backward()).takeWhile(kv -> {
-      byte[] key = expected.pollFirst().key;
-      assertThat(key).isEqualTo(kv.key);
+      byte[] key = expected.pollFirst().key();
+      assertThat(key).isEqualTo(kv.key());
       return key[0] > 6;
     }).toBlocking().last();
     assertThat(expected).isEqualTo(new LinkedList<>());

@@ -63,7 +63,7 @@ public class PutTest {
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertTrue(expected.isEmpty());
   }
 
@@ -74,7 +74,7 @@ public class PutTest {
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertTrue(expected.isEmpty());
   }
 
@@ -97,7 +97,7 @@ public class PutTest {
       }));
     LinkedList<KeyValue> expected = Fixture.range(__1, __3);
     toStreamBlocking(db.scan())
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(t.get()).isInstanceOf(NullPointerException.class);
   }
 
@@ -123,7 +123,7 @@ public class PutTest {
     Thread.sleep(100);
     LinkedList<KeyValue> expected = Fixture.range(__1, __3);
     toStreamBlocking(db.scan())
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(t.get()).isInstanceOf(NullPointerException.class);
   }
 
@@ -137,7 +137,7 @@ public class PutTest {
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
   }
 
@@ -160,7 +160,7 @@ public class PutTest {
     LinkedList<KeyValue> expected = Fixture.range(__1, __9);
     // should see values within same yet-to-commit tx
     toStreamBlocking(db.scan(tx, KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertThat(expected).isEqualTo(new LinkedList<>());
     tx.abort();
     // aborted so NoSuchElementException is expected

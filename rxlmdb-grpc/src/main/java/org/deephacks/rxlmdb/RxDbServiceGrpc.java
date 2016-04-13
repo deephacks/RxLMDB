@@ -87,8 +87,8 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
       @Override
       public void onNext(List<KeyValue> kvs) {
         for (KeyValue kv : kvs) {
-          ByteString k = ByteString.copyFrom(kv.key);
-          ByteString v = ByteString.copyFrom(kv.value);
+          ByteString k = ByteString.copyFrom(kv.key());
+          ByteString v = ByteString.copyFrom(kv.value());
           KeyValueMsg msg = KeyValueMsg.newBuilder().setKey(k).setVal(v).build();
           response.onNext(msg);
         }

@@ -32,7 +32,7 @@ public class GetTest {
     List<KeyValue> result = RxObservables.toSingleStreamBlocking(db.get(Observable.just(__1)))
       .collect(Collectors.toList());
     assertThat(result).hasSize(1);
-    assertThat(result.get(0).key).isEqualTo(__1);
+    assertThat(result.get(0).key()).isEqualTo(__1);
     assertThat(db.get(__1)).isEqualTo(__1);
   }
 
@@ -42,11 +42,11 @@ public class GetTest {
       db.get(Observable.from(new byte[][]{__1, null, __2}))
     ).collect(Collectors.toList());
     assertThat(result).hasSize(3);
-    assertThat(result.get(0).key).isEqualTo(__1);
-    assertThat(result.get(0).value).isEqualTo(__1);
+    assertThat(result.get(0).key()).isEqualTo(__1);
+    assertThat(result.get(0).value()).isEqualTo(__1);
     assertThat(result.get(1)).isEqualTo(null);
-    assertThat(result.get(2).key).isEqualTo(__2);
-    assertThat(result.get(2).value).isEqualTo(__2);
+    assertThat(result.get(2).key()).isEqualTo(__2);
+    assertThat(result.get(2).value()).isEqualTo(__2);
   }
 
 
@@ -56,9 +56,9 @@ public class GetTest {
       db.get(Observable.from(new byte[][]{__3, __1, __2}))
     ).collect(Collectors.toList());
     assertThat(result).hasSize(3);
-    assertThat(result.get(0).key).isEqualTo(__3);
-    assertThat(result.get(1).key).isEqualTo(__1);
-    assertThat(result.get(2).key).isEqualTo(__2);
+    assertThat(result.get(0).key()).isEqualTo(__3);
+    assertThat(result.get(1).key()).isEqualTo(__1);
+    assertThat(result.get(2).key()).isEqualTo(__2);
 
   }
 
@@ -77,10 +77,10 @@ public class GetTest {
     ).collect(Collectors.toList());
     assertThat(result).hasSize(4);
     assertThat(result.get(0)).isNull();
-    assertThat(result.get(1).key).isEqualTo(__9);
-    assertThat(result.get(1).value).isEqualTo(__9);
+    assertThat(result.get(1).key()).isEqualTo(__9);
+    assertThat(result.get(1).value()).isEqualTo(__9);
     assertThat(result.get(2)).isNull();
-    assertThat(result.get(3).key).isEqualTo(__8);
-    assertThat(result.get(3).value).isEqualTo(__8);
+    assertThat(result.get(3).key()).isEqualTo(__8);
+    assertThat(result.get(3).value()).isEqualTo(__8);
   }
 }

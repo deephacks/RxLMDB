@@ -32,9 +32,9 @@ public class ParallelRangeScanTest {
     LinkedList<KeyValue> expected = Fixture.range(__2, __5);
     Observable<List<KeyValue>> result = db.scan(KeyRange.range(__2, __3), KeyRange.range(__4, __5));
     RxObservables.toStreamBlocking(result)
-      .map(kv -> kv.key)
+      .map(kv -> kv.key())
       .sorted(DirectBufferComparator.byteArrayComparator())
-      .forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
+      .forEach(key -> assertThat(expected.pollFirst().key()).isEqualTo(key));
     assertTrue(expected.isEmpty());
   }
 
@@ -44,9 +44,9 @@ public class ParallelRangeScanTest {
     RxTx tx = db.lmdb.readTx();
     Observable<List<KeyValue>> result = db.scan(tx, KeyRange.range(__2, __3), KeyRange.range(__4, __5));
     RxObservables.toStreamBlocking(result)
-      .map(kv -> kv.key)
+      .map(kv -> kv.key())
       .sorted(DirectBufferComparator.byteArrayComparator())
-      .forEach(key -> assertThat(expected.pollFirst().key).isEqualTo(key));
+      .forEach(key -> assertThat(expected.pollFirst().key()).isEqualTo(key));
     assertTrue(expected.isEmpty());
   }
 
@@ -58,7 +58,7 @@ public class ParallelRangeScanTest {
     Observable<List<Byte>> result = db.scan(tx, scan, KeyRange.range(__2, __3), KeyRange.range(__4, __5));
 
     RxObservables.toStreamBlocking(result).sorted()
-      .forEach(key -> assertThat(expected.pollFirst().key[0]).isEqualTo(key));
+      .forEach(key -> assertThat(expected.pollFirst().key()[0]).isEqualTo(key));
     assertTrue(expected.isEmpty());
   }
 }

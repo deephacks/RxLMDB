@@ -6,7 +6,7 @@ import rx.functions.Func1;
 public interface Base {
 
   default Func1<KeyValue, Boolean> keyPrefix(String prefix) {
-    return kv -> new String(kv.key).startsWith(prefix);
+    return kv -> new String(kv.key()).startsWith(prefix);
   }
 
   static void setDebugMode() {

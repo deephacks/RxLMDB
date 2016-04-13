@@ -97,12 +97,12 @@ public class DeleteTest {
     tx = lmdb.writeTx();
     Observable<byte[]> keys = db.scan(tx, KeyRange.atMost(new byte[]{5, 5}))
       .flatMap(Observable::from)
-      .map(kv -> kv.key);
+      .map(kv -> kv.key());
     db.delete(tx, keys);
     tx.commit();
     LinkedList<KeyValue> expected = Fixture.range(__6, __9);
     toStreamBlocking(db.scan(KeyRange.forward()))
-      .forEach(kv -> assertThat(expected.pollFirst().key).isEqualTo(kv.key));
+      .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
     assertTrue(expected.isEmpty());
   }
 

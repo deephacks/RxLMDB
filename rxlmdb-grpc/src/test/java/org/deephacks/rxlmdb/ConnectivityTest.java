@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.nio.file.Path;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -14,9 +15,14 @@ public class ConnectivityTest implements Base {
 
   @Test
   public void testConnectClose() throws Exception {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 9; i++) {
       RxDbGrpcServer server = RxDbGrpcServer.builder().build();
       RxDbGrpcClient client = RxDbGrpcClient.builder().build();
+      KeyValue put = Fixture.values[i];
+      client.put(put).toBlocking().first();
+      KeyValue get = client.get(put.key()).toBlocking().first();
+      assertArrayEquals(put.key(), get.key());
+      assertArrayEquals(put.value(), get.value());
       client.close();
       server.close();
     }
@@ -32,14 +38,14 @@ public class ConnectivityTest implements Base {
     try {
       client.put(kv).toBlocking().first();
       server.close();
-      client.get(kv.key).toBlocking().first();
+      client.get(kv.key()).toBlocking().first();
       fail("should throw");
     } catch (StatusRuntimeException e) {
       assertThat(e.getStatus().getCode(), is(Status.UNAVAILABLE.getCode()));
     }
     lmdb = RxLmdb.builder().path(path).build();
     server = RxDbGrpcServer.builder().lmdb(lmdb).build();
-    client.get(kv.key).toBlocking().first();
+    client.get(kv.key()).toBlocking().first();
     server.close();
   }
 

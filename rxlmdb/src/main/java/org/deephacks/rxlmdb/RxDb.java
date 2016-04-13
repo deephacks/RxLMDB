@@ -48,11 +48,11 @@ public class RxDb {
   }
 
   public void put(KeyValue kv) {
-    db.put(kv.key, kv.value);
+    db.put(kv.key(), kv.value());
   }
 
   public void put(RxTx tx, KeyValue kv) {
-    db.put(tx.tx, kv.key, kv.value);
+    db.put(tx.tx, kv.key(), kv.value());
   }
 
   /**
@@ -81,11 +81,11 @@ public class RxDb {
   }
 
   public void append(RxTx tx, KeyValue kv) {
-    db.put(tx.tx, kv.key, kv.value, Constants.APPEND);
+    db.put(tx.tx, kv.key(), kv.value(), Constants.APPEND);
   }
 
   public void append(KeyValue kv) {
-    db.put(kv.key, kv.value, Constants.APPEND);
+    db.put(kv.key(), kv.value(), Constants.APPEND);
   }
 
   /**
@@ -105,7 +105,6 @@ public class RxDb {
   /**
    * Get kvs from the database. Items that are not found will be
    * represented as null.
-   *
    */
   public Observable<KeyValue> get(Observable<byte[]> keys) {
     return get(lmdb.internalReadTx(), KV_MAPPER, keys);
@@ -175,7 +174,7 @@ public class RxDb {
     // non-blocking needed?
     scan(tx).toBlocking().forEach(keyValues -> {
       Observable<byte[]> keys = keyValues.stream()
-        .map(kv -> Observable.just(kv.key))
+        .map(kv -> Observable.just(kv.key()))
         .reduce(Observable.empty(), (o1, o2) -> o1.mergeWith(o2));
       delete(tx, keys);
     });
@@ -332,7 +331,7 @@ public class RxDb {
     @Override
     public void onNext(KeyValue kv) {
       try {
-        db.put(tx.tx, kv.key, kv.value, append ? Constants.APPEND : 0);
+        db.put(tx.tx, kv.key(), kv.value(), append ? Constants.APPEND : 0);
       } catch (Throwable e) {
         throw new OnErrorFailedException(e);
       }
@@ -366,7 +365,7 @@ public class RxDb {
         try (Transaction tx = env.createWriteTransaction()) {
           for (KeyValue kv : kvs) {
             try {
-              db.put(tx, kv.key, kv.value, 0);
+              db.put(tx, kv.key(), kv.value(), 0);
             } catch (Throwable e) {
               // log error, swallow exception and proceed to next kv
               logger().error("Batch put error.", e);

@@ -34,14 +34,14 @@ public class RxDbGrpcClient {
   }
 
   public Observable<Boolean> put(KeyValue kv) {
-    if (kv == null || kv.key == null || kv.key.length == 0) {
+    if (kv == null || kv.key() == null || kv.key().length == 0) {
       return Observable.just(false);
     }
     return Observable.create(new Observable.OnSubscribe<Boolean>() {
       @Override
       public void call(Subscriber<? super Boolean> subscriber) {
-        ByteString k = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.key));
-        ByteString v = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.value));
+        ByteString k = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.key()));
+        ByteString v = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.value()));
         PutMsg put = PutMsg.newBuilder().setKey(k).setVal(v).build();
         stub.put(put, new StreamObserver<Empty>() {
           @Override
@@ -98,8 +98,8 @@ public class RxDbGrpcClient {
       @Override
       public void onNext(List<KeyValue> kvs) {
         for (KeyValue kv : kvs) {
-          ByteString k = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.key));
-          ByteString v = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.value));
+          ByteString k = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.key()));
+          ByteString v = UnsafeByteStrings.unsafeWrap(ByteBuffer.wrap(kv.value()));
           PutMsg put = PutMsg.newBuilder().setKey(k).setVal(v).build();
           batch.onNext(put);
         }

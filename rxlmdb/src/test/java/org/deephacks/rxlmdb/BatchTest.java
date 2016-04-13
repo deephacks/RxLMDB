@@ -38,8 +38,8 @@ public class BatchTest {
     Thread.sleep(1000);
     List<KeyValue> list = db.scan(KeyRange.forward()).toBlocking().first();
     assertThat(list.size(), is(counter.get()));
-    assertThat(list.get(0).key[0], is((byte) 1));
-    assertThat(list.get(list.size() - 1).key[0], is((byte) counter.get()));
+    assertThat(list.get(0).key()[0], is((byte) 1));
+    assertThat(list.get(list.size() - 1).key()[0], is((byte) counter.get()));
   }
 
   /**

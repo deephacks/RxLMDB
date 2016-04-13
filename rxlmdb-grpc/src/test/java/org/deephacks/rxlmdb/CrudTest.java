@@ -67,7 +67,6 @@ public class CrudTest implements Base {
     List<KeyValue> kvs = new ArrayList<>();
     SerializedSubject<KeyValue, KeyValue> subject = PublishSubject.<KeyValue>create().toSerialized();
     client.batch(subject.buffer(10, TimeUnit.NANOSECONDS, 512));
-
     for (int i = 0; i < 1000; i++) {
       KeyValue kv = Fixture.kv(i, i);
       kvs.add(kv);

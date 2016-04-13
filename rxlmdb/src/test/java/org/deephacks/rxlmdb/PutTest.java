@@ -4,6 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
+import rx.Observer;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 import java.util.LinkedList;
@@ -17,6 +19,7 @@ import static org.deephacks.rxlmdb.Fixture.values;
 import static org.deephacks.rxlmdb.RxObservables.toStreamBlocking;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class PutTest {
   RxDb db;
@@ -78,23 +81,19 @@ public class PutTest {
     assertTrue(expected.isEmpty());
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test(expected = NullPointerException.class)
   public void testPutException() throws InterruptedException {
-    AtomicReference<Throwable> t = new AtomicReference<>();
-    db.put(Observable.just((KeyValue) null)
-      .doOnError(throwable -> t.set(throwable)));
-    assertThat(t.get()).isInstanceOf(NullPointerException.class);
-    db.scan(KeyRange.forward()).toBlocking().first();
+    db.put(Observable.just((KeyValue) null)).toBlocking().first();
   }
 
   @Test
   public void testPutOnErrorResumeNext() {
     AtomicReference<Throwable> t = new AtomicReference<>();
-    db.put(Observable.from(new KeyValue[]{values[0], null, values[2]})
+    db.put(Observable.from(new KeyValue[]{values[0], null, values[2]}))
       .onErrorResumeNext(throwable -> {
         t.set(throwable);
-        return Observable.just(values[1]);
-      }));
+        return Observable.just(false);
+      }).subscribe();
     LinkedList<KeyValue> expected = Fixture.range(__1, __3);
     toStreamBlocking(db.scan())
       .forEach(kv -> assertThat(expected.pollFirst().key()).isEqualTo(kv.key()));
@@ -105,21 +104,25 @@ public class PutTest {
   public void testPutDoOnErrorAbort() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();
     RxTx tx = lmdb.writeTx();
-    db.put(tx, Observable.from(new KeyValue[]{values[0], null, values[2]})
-      .doOnError(throwable -> {
-        t.set(throwable);
-        tx.abort();
-      }));
-    assertThat(t.get()).isInstanceOf(NullPointerException.class);
+    try {
+      db.put(tx, Observable.from(new KeyValue[]{values[0], null, values[2]}))
+        .doOnError(throwable -> {
+          t.set(throwable);
+          tx.abort();
+        }).toBlocking().last();
+      fail("should throw npe");
+    } catch (NullPointerException e) {
+    }
     db.scan(KeyRange.forward()).toBlocking().first();
   }
 
   @Test
   public void testPutExceptionAsync() throws InterruptedException {
     AtomicReference<Throwable> t = new AtomicReference<>();
-    db.put(Observable.just((KeyValue) null)
+    db.put(Observable.just((KeyValue) null))
       .observeOn(Schedulers.io())
-      .doOnError(throwable -> t.set(throwable)));
+      .doOnError(throwable -> t.set(throwable))
+      .subscribe();
     Thread.sleep(100);
     LinkedList<KeyValue> expected = Fixture.range(__1, __3);
     toStreamBlocking(db.scan())

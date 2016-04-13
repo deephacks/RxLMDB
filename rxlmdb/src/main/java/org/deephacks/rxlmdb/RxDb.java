@@ -18,6 +18,8 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.exceptions.OnErrorFailedException;
+import rx.subjects.PublishSubject;
+import rx.subjects.SerializedSubject;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -43,16 +45,18 @@ public class RxDb {
    * Put kvs into the database and commit when the last
    * element has been written.
    */
-  public void put(Observable<KeyValue> values) {
-    put(lmdb.internalWriteTx(), values);
+  public Observable<Boolean> put(Observable<KeyValue> values) {
+    return put(lmdb.internalWriteTx(), values);
   }
 
-  public void put(KeyValue kv) {
+  public Boolean put(KeyValue kv) {
     db.put(kv.key(), kv.value());
+    return true;
   }
 
-  public void put(RxTx tx, KeyValue kv) {
+  public Boolean put(RxTx tx, KeyValue kv) {
     db.put(tx.tx, kv.key(), kv.value());
+    return true;
   }
 
   /**
@@ -60,8 +64,8 @@ public class RxDb {
    *
    * @see RxDb#put(Observable)
    */
-  public void put(RxTx tx, Observable<KeyValue> values) {
-    put(tx, values, false);
+  public Observable<Boolean> put(RxTx tx, Observable<KeyValue> values) {
+    return put(tx, values, false);
   }
 
   /**
@@ -97,9 +101,10 @@ public class RxDb {
     values.subscribe(putSubscriber);
   }
 
-  private void put(RxTx tx, Observable<KeyValue> values, boolean append) {
+  private Observable<Boolean> put(RxTx tx, Observable<KeyValue> values, boolean append) {
     PutSubscriber putSubscriber = new PutSubscriber(this, tx, append);
     values.subscribe(putSubscriber);
+    return putSubscriber.result;
   }
 
   /**
@@ -308,11 +313,13 @@ public class RxDb {
     final RxTx tx;
     final Database db;
     final boolean append;
+    final PublishSubject<Boolean> result;
 
     private PutSubscriber(RxDb db, RxTx tx, boolean append) {
       this.tx = tx;
       this.db = db.db;
       this.append = append;
+      this.result = PublishSubject.create();
     }
 
     @Override
@@ -320,19 +327,25 @@ public class RxDb {
       if (!tx.isUserManaged) {
         tx.commit();
       }
+      result.onCompleted();
     }
 
     @Override
     public void onError(Throwable e) {
       tx.abort();
       logger().error("Put error.", e);
+      result.onError(e);
     }
 
     @Override
     public void onNext(KeyValue kv) {
       try {
         db.put(tx.tx, kv.key(), kv.value(), append ? Constants.APPEND : 0);
+        result.onNext(true);
       } catch (Throwable e) {
+        if (e instanceof RuntimeException) {
+          throw e;
+        }
         throw new OnErrorFailedException(e);
       }
     }

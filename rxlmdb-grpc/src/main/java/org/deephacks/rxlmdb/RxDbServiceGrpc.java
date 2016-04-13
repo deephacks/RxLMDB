@@ -1,8 +1,13 @@
 package org.deephacks.rxlmdb;
 
 import com.google.protobuf.ByteString;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.deephacks.rxlmdb.Rxdb.*;
+import org.fusesource.lmdbjni.LMDBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Observer;
 import rx.subjects.PublishSubject;
@@ -12,8 +17,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
+  private static final Logger logger = LoggerFactory.getLogger(RxDbServiceGrpc.class);
   private static final KeyRange.KeyRangeType[] TYPES = KeyRange.KeyRangeType.values();
-
   private RxLmdb lmdb;
   private RxDb db;
 
@@ -24,8 +29,16 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
 
   @Override
   public void put(PutMsg msg, StreamObserver<Empty> response) {
-    db.put(new KeyValue(msg.getKey().toByteArray(), msg.getVal().toByteArray()));
-    response.onCompleted();
+    try {
+      db.put(new KeyValue(msg.getKey().toByteArray(), msg.getVal().toByteArray()));
+      response.onCompleted();
+    } catch (LMDBException e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("LMDB exception with error code "
+          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+      }
+      throw new StatusRuntimeException(Status.INTERNAL);
+    }
   }
 
   @Override
@@ -53,46 +66,79 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
 
   @Override
   public void get(Rxdb.GetMsg msg, StreamObserver<ValueMsg> response) {
-    byte[] bytes = db.get(msg.getKey().toByteArray());
-    ValueMsg.Builder builder = ValueMsg.newBuilder();
-    if (bytes != null) {
-      builder.setVal(ByteString.copyFrom(bytes));
+    try {
+      byte[] bytes = db.get(msg.getKey().toByteArray());
+      ValueMsg.Builder builder = ValueMsg.newBuilder();
+      if (bytes != null) {
+        builder.setVal(ByteString.copyFrom(bytes));
+      }
+      response.onNext(builder.build());
+      response.onCompleted();
+    } catch (LMDBException e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("LMDB exception with error code "
+          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+      }
+      throw new StatusRuntimeException(Status.INTERNAL);
     }
-    response.onNext(builder.build());
-    response.onCompleted();
   }
 
   @Override
   public void delete(DeleteMsg msg, StreamObserver<BooleanMsg> response) {
-    boolean delete = db.delete(msg.getKey().toByteArray());
-    response.onNext(BooleanMsg.newBuilder().setValue(delete).build());
-    response.onCompleted();
+    try {
+      boolean delete = db.delete(msg.getKey().toByteArray());
+      response.onNext(BooleanMsg.newBuilder().setValue(delete).build());
+      response.onCompleted();
+    } catch (LMDBException e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("LMDB exception with error code "
+          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+      }
+      throw new StatusRuntimeException(Status.INTERNAL);
+    }
   }
 
   @Override
   public void scan(KeyRangeMsg msg, StreamObserver<KeyValueMsg> response) {
     KeyRange.KeyRangeType type = TYPES[msg.getType().getNumber()];
     KeyRange keyRange = new KeyRange(msg.getStart().toByteArray(), msg.getStop().toByteArray(), type);
-    db.scan(keyRange).subscribe(new Observer<List<KeyValue>>() {
-      @Override
-      public void onCompleted() {
-        response.onCompleted();
-      }
-
-      @Override
-      public void onError(Throwable throwable) {
-        response.onError(throwable);
-      }
-
-      @Override
-      public void onNext(List<KeyValue> kvs) {
-        for (KeyValue kv : kvs) {
-          ByteString k = ByteString.copyFrom(kv.key());
-          ByteString v = ByteString.copyFrom(kv.value());
-          KeyValueMsg msg = KeyValueMsg.newBuilder().setKey(k).setVal(v).build();
-          response.onNext(msg);
+    try {
+      db.scan(keyRange).subscribe(new Observer<List<KeyValue>>() {
+        @Override
+        public void onCompleted() {
+          response.onCompleted();
         }
+
+        @Override
+        public void onError(Throwable throwable) {
+          if (throwable instanceof LMDBException) {
+            if (logger.isErrorEnabled()) {
+              LMDBException e = (LMDBException) throwable;
+              logger.error("LMDB exception with error code "
+                + e.getErrorCode() + " message '" + e.getMessage() + "'");
+            }
+            response.onError(new StatusRuntimeException(Status.INTERNAL));
+          } else {
+            response.onError(throwable);
+          }
+        }
+
+        @Override
+        public void onNext(List<KeyValue> kvs) {
+          for (KeyValue kv : kvs) {
+            ByteString k = ByteString.copyFrom(kv.key());
+            ByteString v = ByteString.copyFrom(kv.value());
+            KeyValueMsg msg = KeyValueMsg.newBuilder().setKey(k).setVal(v).build();
+            response.onNext(msg);
+          }
+        }
+      });
+    } catch (LMDBException e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("LMDB exception with error code "
+          + e.getErrorCode() + " message '" + e.getMessage() + "'");
       }
-    });
+      throw new StatusRuntimeException(Status.INTERNAL);
+    }
   }
 }

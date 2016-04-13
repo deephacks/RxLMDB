@@ -1,11 +1,14 @@
 package org.deephacks.rxlmdb;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.junit.*;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 import rx.subjects.SerializedSubject;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
@@ -18,10 +21,14 @@ public class CrudTest implements Base {
 
   RxDbGrpcServer server;
   RxDbGrpcClient client;
+  RxLmdb lmdb;
+  RxDb db;
 
   @Before
   public void before() throws IOException {
-    server = RxDbGrpcServer.builder().build();
+    lmdb = RxLmdb.tmp();
+    db = lmdb.dbBuilder().build();
+    server = RxDbGrpcServer.builder().lmdb(lmdb).db(db).build();
     client = RxDbGrpcClient.builder().build();
   }
 
@@ -44,6 +51,40 @@ public class CrudTest implements Base {
 
     assertTrue(client.delete(kv1.key()).toBlocking().first());
     assertNull(client.get(kv1.key()).toBlocking().firstOrDefault(null));
+  }
+
+  @Test
+  public void testPutServerFailure() {
+    db.close();
+    try {
+      KeyValue kv1 = Fixture.values[0];
+      client.put(kv1).toBlocking().first();
+      fail("should fail");
+    } catch (StatusRuntimeException e) {
+      assertThat(e.getStatus(), is(Status.INTERNAL));
+    }
+  }
+
+  @Test
+  public void testGetServerFailure() {
+    db.close();
+    try {
+      client.get(new byte[1]).toBlocking().first();
+      fail("should fail");
+    } catch (StatusRuntimeException e) {
+      assertThat(e.getStatus(), is(Status.INTERNAL));
+    }
+  }
+
+  @Test
+  public void testDeleteServerFailure() {
+    db.close();
+    try {
+      client.delete(new byte[1]).toBlocking().first();
+      fail("should fail");
+    } catch (StatusRuntimeException e) {
+      assertThat(e.getStatus(), is(Status.INTERNAL));
+    }
   }
 
   @Test
@@ -85,6 +126,15 @@ public class CrudTest implements Base {
   }
 
   @Test
+  public void testBatchServerFailure() throws InterruptedException {
+    db.close();
+    SerializedSubject<KeyValue, KeyValue> subject = PublishSubject.<KeyValue>create().toSerialized();
+    client.batch(subject.buffer(10, TimeUnit.NANOSECONDS, 512));
+    subject.onNext(Fixture.kv(1, 1));
+    subject.onCompleted();
+  }
+
+  @Test
   public void testScan() throws InterruptedException {
     List<KeyValue> kvs = new ArrayList<>();
     for (int i = 0; i < 100; i++) {
@@ -98,6 +148,17 @@ public class CrudTest implements Base {
     for (int i = 0; i < 100; i++) {
       KeyValue kv = kvs.get(i);
       assertThat(new String(kv.key()), is(new String(list.get(i).key())));
+    }
+  }
+
+  @Test
+  public void testScanServerFailure() throws InterruptedException {
+    db.close();
+    try {
+      client.scan().toList().toBlocking().first();
+      fail("should fail");
+    } catch (StatusRuntimeException e) {
+      assertThat(e.getStatus(), is(Status.INTERNAL));
     }
   }
 }

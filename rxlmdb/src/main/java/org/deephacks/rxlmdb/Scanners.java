@@ -67,24 +67,33 @@ class Scanners {
   private static final <T> Observable<T> createObservable(Scanner<T> scanner, RxTx tx) {
     return Observable.create(subscriber -> {
       try {
-        scanner.execute(subscriber);
-        if (!subscriber.isUnsubscribed()) {
-          subscriber.onCompleted();
+        try {
+          scanner.execute(subscriber);
+          if (!subscriber.isUnsubscribed()) {
+            subscriber.onCompleted();
+          }
+        } catch (Throwable e) {
+          if (scanner.cursor != null) {
+            scanner.cursor.close();
+          }
+          if (!tx.isUserManaged) {
+            tx.abort();
+          }
+          subscriber.onError(e);
+        } finally {
+          if (scanner.cursor != null) {
+            scanner.cursor.close();
+          }
+          if (!tx.isUserManaged) {
+            // no op if tx was aborted
+            tx.commit();
+          }
         }
-      } catch (Throwable e) {
-        scanner.cursor.close();
-        if (!tx.isUserManaged) {
-          tx.abort();
-        }
+      } catch (Exception e) {
         subscriber.onError(e);
-      } finally {
-        scanner.cursor.close();
-        if (!tx.isUserManaged) {
-          // no op if tx was aborted
-          tx.commit();
-        }
       }
     });
+
   }
 
   static abstract class Scanner<T> {
@@ -301,6 +310,7 @@ class Scanners {
       }
     }
   }
+
   static class CursorScan<T> extends Scanner<T> {
     private final CursorScanner<T> scanner;
 

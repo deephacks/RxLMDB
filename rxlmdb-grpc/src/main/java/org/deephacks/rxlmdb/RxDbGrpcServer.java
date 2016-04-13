@@ -20,10 +20,17 @@ public class RxDbGrpcServer {
     this.host = Optional.ofNullable(builder.host).orElse("localhost");
     this.lmdb = Optional.ofNullable(builder.lmdb).orElseGet(() -> RxLmdb.tmp());
     this.db = Optional.ofNullable(builder.db).orElseGet(() -> RxDbGrpcServer.this.lmdb.dbBuilder().build());
-    this.server = NettyServerBuilder.forPort(port)
-      .addService(ServerInterceptors.intercept(
-        DatabaseServiceGrpc.bindService(new RxDbServiceGrpc(this.db))))
-      .build().start();
+    if (builder.builder != null) {
+      this.server = builder.builder
+        .addService(ServerInterceptors.intercept(
+          DatabaseServiceGrpc.bindService(new RxDbServiceGrpc(this.db))))
+        .build().start();
+    } else {
+      this.server = NettyServerBuilder.forPort(port)
+        .addService(ServerInterceptors.intercept(
+          DatabaseServiceGrpc.bindService(new RxDbServiceGrpc(this.db))))
+        .build().start();
+    }
   }
 
   public void close() throws Exception {
@@ -42,6 +49,7 @@ public class RxDbGrpcServer {
     private String host;
     private RxLmdb lmdb;
     private RxDb db;
+    private NettyServerBuilder builder;
 
     public RxDbGrpcServer build() throws IOException {
       return new RxDbGrpcServer(this);
@@ -64,6 +72,11 @@ public class RxDbGrpcServer {
 
     public Builder db(RxDb db) {
       this.db = db;
+      return this;
+    }
+
+    public Builder nettyServerBuilder(NettyServerBuilder builder) {
+      this.builder = builder;
       return this;
     }
   }

@@ -45,7 +45,9 @@ public class ConnectivityTest {
     }
     lmdb = RxLmdb.builder().path(path).build();
     server = RxDbGrpcServer.builder().lmdb(lmdb).build();
-    client.get(kv.key()).toBlocking().first();
+    KeyValue result = client.get(kv.key()).toBlocking().first();
+    assertArrayEquals(kv.key(), result.key());
+    assertArrayEquals(kv.value(), result.value());
     server.close();
   }
 

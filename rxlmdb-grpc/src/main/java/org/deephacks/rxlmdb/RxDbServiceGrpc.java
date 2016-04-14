@@ -34,8 +34,7 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
       response.onCompleted();
     } catch (LMDBException e) {
       if (logger.isErrorEnabled()) {
-        logger.error("LMDB exception with error code "
-          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+        logger.error("LMDB error " + e.getErrorCode() + " '" + e.getMessage() + "'");
       }
       throw new StatusRuntimeException(Status.INTERNAL);
     }
@@ -76,8 +75,7 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
       response.onCompleted();
     } catch (LMDBException e) {
       if (logger.isErrorEnabled()) {
-        logger.error("LMDB exception with error code "
-          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+        logger.error("LMDB error " + e.getErrorCode() + " '" + e.getMessage() + "'");
       }
       throw new StatusRuntimeException(Status.INTERNAL);
     }
@@ -91,8 +89,7 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
       response.onCompleted();
     } catch (LMDBException e) {
       if (logger.isErrorEnabled()) {
-        logger.error("LMDB exception with error code "
-          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+        logger.error("LMDB error " + e.getErrorCode() + " '" + e.getMessage() + "'");
       }
       throw new StatusRuntimeException(Status.INTERNAL);
     }
@@ -114,8 +111,7 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
           if (throwable instanceof LMDBException) {
             if (logger.isErrorEnabled()) {
               LMDBException e = (LMDBException) throwable;
-              logger.error("LMDB exception with error code "
-                + e.getErrorCode() + " message '" + e.getMessage() + "'");
+              logger.error("LMDB error " + e.getErrorCode() + " '" + e.getMessage() + "'");
             }
             response.onError(new StatusRuntimeException(Status.INTERNAL));
           } else {
@@ -135,8 +131,7 @@ final class RxDbServiceGrpc implements DatabaseServiceGrpc.DatabaseService {
       });
     } catch (LMDBException e) {
       if (logger.isErrorEnabled()) {
-        logger.error("LMDB exception with error code "
-          + e.getErrorCode() + " message '" + e.getMessage() + "'");
+        logger.error("LMDB error " + e.getErrorCode() + " '" + e.getMessage() + "'");
       }
       throw new StatusRuntimeException(Status.INTERNAL);
     }

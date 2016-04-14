@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class RxDbGrpcServer {
-  static final int DEFAULT_PORT = 9098;
+  static final int DEFAULT_PORT = 18080;
   private final int port;
   private final String host;
   private RxLmdb lmdb;
@@ -31,6 +31,14 @@ public class RxDbGrpcServer {
           DatabaseServiceGrpc.bindService(new RxDbServiceGrpc(this.db))))
         .build().start();
     }
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  public String getHost() {
+    return host;
   }
 
   public void close() throws Exception {

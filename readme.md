@@ -209,3 +209,42 @@ subject.onNext(new KeyValue(new byte[] { 1 }, new byte[] { 1 }));
 subject.onNext(new KeyValue(new byte[] { 2 }, new byte[] { 2 }));
 subject.onCompleted();
 ```
+
+### gRPC
+
+The gRPC interface is wrapped by a RxJava facade that mimic the RxLMDB API.
+
+```java
+
+// server side
+
+RxLmdb lmdb = RxLmdb.builder()
+  .size(10, ByteUnit.GIBIBYTES)
+  .path("/tmp/rxlmdb")
+  .build();
+
+RxDb db = lmdb.dbBuilder()
+  .name("test")
+  .build();
+
+RxDbGrpcServer server = RxDbGrpcServer.builder()
+  .host("localhost").port(18080)
+  .lmdb(lmdb).db(db)
+  .build();
+
+RxDbGrpcClient client = RxDbGrpcClient.builder()
+  .host("localhost").port(18080)
+  .build();
+
+// client side
+
+Observable<Boolean> put = client.put(new KeyValue(new byte[1], new byte[1]));
+
+Observable<KeyValue> get = client.get(new byte[1]);
+
+Observable<Boolean> delete = client.delete(new byte[1]);
+
+Observable<KeyValue> forward = client.scan(KeyRange.forward());
+
+Observable<KeyValue> backward = client.scan(KeyRange.backward());
+```

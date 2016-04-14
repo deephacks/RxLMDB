@@ -120,83 +120,81 @@ ValsForwardRangeScan.rx             thrpt   10  39036264.187 ±  2346692.590  op
 ### Usage
 
 ```java
-  RxLMDB lmdb = RxLMDB.builder()
-    .path("/tmp/rxlmdb")
-    .size(ByteUnit.GIGA, 1)
-    .build();
+RxLmdb lmdb = RxLmdb.builder()
+  .size(10, ByteUnit.GIBIBYTES)
+  .path("/tmp/rxlmdb")
+  .build();
+
+RxDb db = lmdb.dbBuilder()
+  .name("test")
+  .build();
+  
+KeyValue[] kvs = new KeyValue[] { 
+   new KeyValue(new byte[] { 1 }, new byte[] { 1 }),
+   new KeyValue(new byte[] { 2 }, new byte[] { 2 }),
+   new KeyValue(new byte[] { 3 }, new byte[] { 3 })
+};
+
+// put
+db.put(Observable.from(kvs));
+  
+// get
+Observable<KeyValue> o = db.get(Observable.just(new byte[] { 1 }));
+
+// RxJava have a hard time coping with extreme scan performance of LMDB without buffering,
+// hence the Observable list return value from scan operations. Just flatmap away and be happy.
+
+// scan forward
+Observable<List<KeyValue<>> o = db.scan();
+
+// scan backward
+Observable<List<KeyValue<>> o = db.scan(KeyRange.backward());
+
+// scan range forward
+Observable<List<KeyValue<>> o = db.scan(
+  KeyRange.range(new byte[]{ 1 }, new byte[]{ 2 }
+);
+  
+// scan range backward
+Observable<List<KeyValue<>> o = db.scan(
+  KeyRange.range(new byte[]{ 2 }, new byte[]{ 1 }
+);
+
+// parallel range scans
+Observable<List<KeyValue>> obs = db.scan(
+  KeyRange.range(new byte[]{ 1 }, new byte[]{ 1 }),
+  KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
+  KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
+);
+  
+// zero copy parallel range scans
+Observable<List<Byte>> obs = db.scan(
+  (key, value) -> key.getByte(0),
+  KeyRange.range(new byte[]{ 1 }, new byte[]{ 1 }),
+  KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
+  KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 }));
+  
+// Cursor scans
+Observable<List<byte[]>> obs = db.cursor((cursor, subscriber) -> {
+  cursor.first();
+  subscriber.onNext(cursor.keyBytes());
+  cursor.last();
+  subscriber.onNext(cursor.keyBytes());
+});
     
-  RxDB db = RxDB.builder()
-    .name("test")
-    .lmdb(lmdb)
-    .build();
-  
-  KeyValue[] kvs = new KeyValue[] { 
-     new KeyValue(new byte[] { 1 }, new byte[] { 1 }),
-     new KeyValue(new byte[] { 2 }, new byte[] { 2 }),
-     new KeyValue(new byte[] { 3 }, new byte[] { 3 })
-  };
-  
-  // put
-  db.put(Observable.from(kvs));
-  
-  // get
-  Observable<KeyValue> o = db.get(Observable.just(new byte[] { 1 }));
+// count rows  
+Integer count = db.scan()
+  .flatMap(Observable::from)
+  .count().toBlocking().first();
 
-  // RxJava have a hard time coping with extreme scan performance of LMDB without buffering,
-  // hence the Observable list return value from scan operations. Just flatmap away and be happy.
+// delete
+db.delete(Observable.just(new byte[] { 1 }));
 
-  // scan forward
-  Observable<List<KeyValue<>> o = db.scan();
-
-  // scan backward
-  Observable<List<KeyValue<>> o = db.scan(KeyRange.backward());
-
-  // scan range forward
-  Observable<List<KeyValue<>> o = db.scan(
-    KeyRange.range(new byte[]{ 1 }, new byte[]{ 2 }
-  );
-  
-  // scan range backward
-  Observable<List<KeyValue<>> o = db.scan(
-    KeyRange.range(new byte[]{ 2 }, new byte[]{ 1 }
-  );
-
-  // parallel range scans
-  Observable<List<KeyValue>> obs = db.scan(
-    KeyRange.range(new byte[]{ 1 }, new byte[]{ 1 }),
-    KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
-    KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
-  );
-  
-  // zero copy parallel range scans
-  Observable<List<Byte>> obs = db.scan(
-    (key, value) -> key.getByte(0),
-    KeyRange.range(new byte[]{ 1 }, new byte[]{ 1 }),
-    KeyRange.range(new byte[]{ 2 }, new byte[]{ 2 }),
-    KeyRange.range(new byte[]{ 3 }, new byte[]{ 3 })
-  );
-  
-  // Cursor scans
-  Observable<List<byte[]>> obs = db.cursor((cursor, subscriber) -> {
-    cursor.first();
-    subscriber.onNext(cursor.keyBytes());
-    cursor.last();
-    subscriber.onNext(cursor.keyBytes());
-  });
-    
-  // count rows  
-  Integer count = db.scan()
-    .flatMap(Observable::from)
-    .count().toBlocking().first();
-
-  // delete
-  db.delete(Observable.just(new byte[] { 1 }));
-  
-  // delete range  
-  Observable<byte[]> keys = db.scan()
-    .flatMap(Observable::from)
-    .map(kv -> kv.key);
-  db.delete(keys);
+// delete range  
+Observable<byte[]> keys = db.scan()
+  .flatMap(Observable::from)
+  .map(kv -> kv.key);
+db.delete(keys);
   
 ```
 

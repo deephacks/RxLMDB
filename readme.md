@@ -7,7 +7,7 @@ RxLMDB provide a [RxJava](https://github.com/ReactiveX/RxJava) API to [LMDB](htt
 
 Java 8 and RxJava is a pleasure to work with but since the LMDB API is a bit low level it make sense to raise the abstraction level to modern standards without scarifying too much (??) performance. So extending LMDB with RxJava makes it possible for asynchronous and event-based programs to process data from LMDB as sequences and adds operators that allow you to compose sequences together declaratively while abstracting away concerns about things like low-level threading, synchronization, thread-safety and concurrent data structures.
 
-RxLMDB is also in the progress of providing a remote protocol with [Reactive Streams](http://www.reactive-streams.org/) semantics over an asynchronous, binary boundary using [ReactiveSocket](http://reactivesocket.io/) and [Aeron](https://github.com/real-logic/Aeron), which enables symmetric interaction models via async message passing over a single connection towards a server side LMDB environment.
+RxLMDB provide a binary [gRPC](http://www.grpc.io) HTTP/2 interface to LMDB with capabilities such as bidirectional streaming, flow control, header compression, multiplexing requests over a single TCP connection. [ReactiveSocket](http://reactivesocket.io/) with [Aeron](https://github.com/real-logic/Aeron) are under evaluation as an alternative remote interface.
 
 ### Benchmark
 

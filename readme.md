@@ -230,11 +230,11 @@ RxDbGrpcServer server = RxDbGrpcServer.builder()
   .lmdb(lmdb).db(db)
   .build();
 
+// client side
+
 RxDbGrpcClient client = RxDbGrpcClient.builder()
   .host("localhost").port(18080)
   .build();
-
-// client side
 
 Observable<Boolean> put = client.put(new KeyValue(new byte[1], new byte[1]));
 
@@ -242,7 +242,9 @@ Observable<KeyValue> get = client.get(new byte[1]);
 
 Observable<Boolean> delete = client.delete(new byte[1]);
 
-Observable<KeyValue> forward = client.scan(KeyRange.forward());
+Observable<KeyValue> forwardScan = client.scan(KeyRange.forward());
 
-Observable<KeyValue> backward = client.scan(KeyRange.backward());
+Observable<KeyValue> backwardScan = client.scan(KeyRange.backward());
+
+Observable<KeyValue> rangeScan = client.scan(KeyRange.range(new byte[]{ 1 }, new byte[]{ 10 }));
 ```
